@@ -1,6 +1,12 @@
 config {
-  module = true
+  call_module_type = "all"
   force  = false
+}
+
+plugin "terraform" {
+  enabled = true
+  version = "0.9.1"
+  source  = "github.com/terraform-linters/tflint-ruleset-terraform"
 }
 
 rule "terraform_naming_convention" {
@@ -17,10 +23,10 @@ rule "terraform_naming_convention" {
   output {
     format = "snake_case"
   }
-  
-  type {
-    format = "snake_case"
-  }
+}
+
+rule "terraform_required_version" {
+  enabled = true
 }
 
 rule "terraform_unused_declarations" {

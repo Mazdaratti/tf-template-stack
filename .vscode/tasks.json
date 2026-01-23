@@ -2,39 +2,67 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Terraform: Init",
-      "type": "shell",
-      "command": "terraform",
-      "args": ["init"],
-      "problemMatcher": []
-    },
-    {
-      "label": "Terraform: Format",
+      "label": "Terraform: Format (repo)",
       "type": "shell",
       "command": "terraform",
       "args": ["fmt", "-recursive"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     },
     {
-      "label": "Terraform: Validate",
+      "label": "TFLint: Lint (repo)",
+      "type": "shell",
+      "command": "tflint",
+      "args": ["--recursive"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "terraform-docs: Generate README.md (repo)",
+      "type": "shell",
+      "command": "terraform-docs",
+      "args": ["markdown", "table", ".", "--output-file", "README.md"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+
+    {
+      "label": "Terraform (dev): Init",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["init"],
+      "options": {
+        "cwd": "${workspaceFolder}/envs/dev"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Terraform (dev): Validate",
       "type": "shell",
       "command": "terraform",
       "args": ["validate"],
+      "options": {
+        "cwd": "${workspaceFolder}/envs/dev"
+      },
       "problemMatcher": []
     },
     {
-      "label": "Terraform: Plan",
+      "label": "Terraform (dev): Plan",
       "type": "shell",
       "command": "terraform",
       "args": ["plan", "-var-file=dev.tfvars"],
-      "problemMatcher": []
-    },
-    {
-      "label": "TFLint: Lint",
-      "type": "shell",
-      "command": "tflint",
-      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}/envs/dev"
+      },
       "problemMatcher": []
     }
   ]
 }
+
+
