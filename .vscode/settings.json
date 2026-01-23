@@ -1,0 +1,19 @@
+{
+  "[hcl]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "hashicorp.hcl"
+  },
+  "terraform.lintPath": "tflint",
+  "terraform.lintOnSave": true,
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/.terraform": true,
+    "**/.terraform.lock.hcl": false,
+    "*.tfstate": true,
+    "*.tfstate.*": true
+  },
+  "search.exclude": {
+    "**/.terraform": true,
+    "**/node_modules": true
+  }
+}

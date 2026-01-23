@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Terraform: Init",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["init"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Terraform: Format",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["fmt", "-recursive"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Terraform: Validate",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["validate"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Terraform: Plan",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["plan", "-var-file=dev.tfvars"],
+      "problemMatcher": []
+    },
+    {
+      "label": "TFLint: Lint",
+      "type": "shell",
+      "command": "tflint",
+      "args": [],
+      "problemMatcher": []
+    }
+  ]
+}
