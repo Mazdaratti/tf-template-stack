@@ -9,7 +9,25 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - **global/**: Shared configuration and data sources
 
 <!-- BEGIN_TF_DOCS -->
+## Requirements
 
+No requirements.
+
+## Providers
+
+No providers.
+
+## Resources
+
+No resources.
+
+## Inputs
+
+No inputs.
+
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->
 
 ## Environments
