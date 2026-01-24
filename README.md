@@ -1,53 +1,16 @@
-# Todo App Infrastructure
+# TF-Template-Stack
 
-Terraform configuration for the Todo App infrastructure deployment across multiple environments (dev, stage, prod).
+A modular Terraform configuration for deploying applications on AWS with environment-specific deployments.
 
-## Directory Structure
+## Structure
 
-- `global/` - Global configuration and data sources
-- `modules/` - Reusable Terraform modules (VPC, ALB, ECS Service)
-- `envs/` - Environment-specific configurations (dev, stage, prod)
-- `.vscode/` - VS Code configuration files
+- **envs/**: Environment-specific configurations (dev, stage, prod)
+- **modules/**: Reusable Terraform modules 
+- **global/**: Shared configuration and data sources
 
-## Prerequisites
+<!-- BEGIN_TF_DOCS -->
 
-- Terraform >= 1.0
-- AWS CLI configured with appropriate credentials
-- tflint for linting
-- terraform-docs for documentation generation
-
-## Usage
-
-### Initialize Terraform
-
-```bash
-cd envs/dev  # or stage, prod
-terraform init
-```
-
-### Validate Configuration
-
-```bash
-terraform validate
-terraform plan
-```
-
-### Apply Configuration
-
-```bash
-terraform apply
-```
-
-## Modules
-
-### VPC Module
-Creates VPC with subnets, NAT gateways, and route tables.
-
-### ALB Module
-Creates Application Load Balancer for routing traffic.
-
-### ECS Service Module
-Creates ECS service for container orchestration.
+<!-- END_TF_DOCS -->
 
 ## Environments
 

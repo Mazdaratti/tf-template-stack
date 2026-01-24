@@ -1,32 +1,14 @@
 # VPC Module
 
-This module creates a VPC with public and private subnets across multiple availability zones.
+Creates a Virtual Private Cloud with subnets, internet gateway, and NAT gateway.
 
 ## Features
 
 - VPC with configurable CIDR block
-- Public subnets with Internet Gateway
-- Private subnets with NAT Gateway (optional)
-- Route tables and route associations
-- Network ACLs
+- Public and private subnets across multiple availability zones
+- Internet Gateway and NAT Gateway for routing
+- Network ACLs and security group templates
 
-## Usage
+<!-- BEGIN_TF_DOCS -->
 
-```hcl
-module "vpc" {
-  source = "../modules/vpc"
-
-  vpc_name           = "todo-app-vpc"
-  cidr_block         = "10.0.0.0/16"
-  enable_nat_gateway = true
-  tags               = local.common_tags
-}
-```
-
-## Inputs
-
-See `variables.tf` for detailed input descriptions.
-
-## Outputs
-
-See `outputs.tf` for detailed output descriptions.
+<!-- END_TF_DOCS -->

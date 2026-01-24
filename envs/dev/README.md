@@ -1,33 +1,20 @@
 # Development Environment
 
-This directory contains Terraform configuration for the development environment.
+Configuration for the development environment deployment.
 
 ## Prerequisites
 
-- AWS credentials configured locally
-- Terraform initialized (`terraform init`)
+- Terraform >= 0.13
+- AWS credentials configured
 
 ## Usage
 
-### Plan changes
-```bash
-terraform plan -var-file="dev.tfvars"
+```shell
+terraform init
+terraform plan -var-file=dev.tfvars
+terraform apply -var-file=dev.tfvars
 ```
 
-### Apply changes
-```bash
-terraform apply -var-file="dev.tfvars"
-```
+<!-- BEGIN_TF_DOCS -->
 
-### Destroy resources
-```bash
-terraform destroy -var-file="dev.tfvars"
-```
-
-## Configuration
-
-Edit `dev.tfvars` to modify environment-specific variables.
-
-## Troubleshooting
-
-For backend errors, ensure the S3 bucket and DynamoDB table exist in AWS.
+<!-- END_TF_DOCS -->
