@@ -31,7 +31,54 @@
       },
       "problemMatcher": []
     },
-
+    {
+      "label": "terraform-docs: Env dev README (inject)",
+      "type": "shell",
+      "command": "terraform-docs",
+      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
+      "options": { "cwd": "${workspaceFolder}/envs/dev" },
+      "problemMatcher": []
+    },
+    {
+      "label": "terraform-docs: Env stage README (inject)",
+      "type": "shell",
+      "command": "terraform-docs",
+      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
+      "options": { "cwd": "${workspaceFolder}/envs/stage" },
+      "problemMatcher": []
+    },
+    {
+      "label": "terraform-docs: Env prod README (inject)",
+      "type": "shell",
+      "command": "terraform-docs",
+      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
+      "options": { "cwd": "${workspaceFolder}/envs/prod" },
+      "problemMatcher": []
+    },
+    {
+      "label": "terraform-docs: Module vpc README (inject)",
+      "type": "shell",
+      "command": "terraform-docs",
+      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
+      "options": { "cwd": "${workspaceFolder}/modules/vpc" },
+      "problemMatcher": []
+    },
+    {
+      "label": "terraform-docs: Module alb README (inject)",
+      "type": "shell",
+      "command": "terraform-docs",
+      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
+      "options": { "cwd": "${workspaceFolder}/modules/alb" },
+      "problemMatcher": []
+    },
+    {
+      "label": "terraform-docs: Module ecs-service README (inject)",
+      "type": "shell",
+      "command": "terraform-docs",
+      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
+      "options": { "cwd": "${workspaceFolder}/modules/ecs-service" },
+      "problemMatcher": []
+    },
     {
       "label": "Terraform (dev): Init",
       "type": "shell",
