@@ -6,7 +6,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
 
 - **envs/**: Environment-specific configurations (dev, stage, prod)
 - **modules/**: Reusable Terraform modules 
-- **global/**: Shared configuration and data sources
+
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
