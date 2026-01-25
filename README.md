@@ -4,8 +4,17 @@ A modular Terraform configuration for deploying applications on AWS with environ
 
 ## Structure
 
-- **envs/**: Environment-specific configurations (dev, stage, prod)
-- **modules/**: Reusable Terraform modules 
+- **envs/**: Environment root modules (dev, stage, prod). Each env calls reusable modules.
+- **modules/**: Reusable Terraform modules (copied/added as needed per project).
+- **bootstrap/** (optional): One-time prerequisites per environment (remote state, GitHub OIDC, IAM).
+- **.vscode/**: Editor tasks/settings for repeatable workflows.
+
+## Workflow
+
+- Use VS Code tasks to run `fmt`, `tflint`, and `terraform-docs`.
+- Generate docs for any env/module folder by opening a file in that folder and running:
+  **terraform-docs: Generate README (current folder)**.
+
 
 
 <!-- BEGIN_TF_DOCS -->
