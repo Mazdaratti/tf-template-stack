@@ -11,6 +11,8 @@ cd bootstrap/dev
 terraform init
 terraform apply
 
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
