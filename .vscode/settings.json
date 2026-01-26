@@ -11,10 +11,10 @@
   "terraform.lintOnSave": true,
   "editor.formatOnSave": true,
   "files.exclude": {
-    "**/.terraform": true,
+    "**/.terraform": false,
     "**/.terraform.lock.hcl": false,
-    "*.tfstate": true,
-    "*.tfstate.*": true
+    "*.tfstate": false,
+    "*.tfstate.*": false
   },
   "search.exclude": {
     "**/.terraform": true,

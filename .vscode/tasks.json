@@ -84,9 +84,17 @@
       "problemMatcher": []
     },
     {
-      "label": "Terraform (dev): Plan",
+      "label": "Terraform: Validate (current folder)",
       "type": "shell",
       "command": "terraform",
+      "args": ["validate"],
+      "options": { "cwd": "${fileDirname}" },
+      "problemMatcher": []
+  },
+  {
+    "label": "Terraform (dev): Plan",
+    "type": "shell",
+    "command": "terraform",
       "args": ["plan", "-var-file=dev.tfvars"],
       "options": {
         "cwd": "${workspaceFolder}/envs/dev"
