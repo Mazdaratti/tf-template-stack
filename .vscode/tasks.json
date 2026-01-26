@@ -22,6 +22,14 @@
       "problemMatcher": []
     },
     {
+      "label": "TFLint: Lint (current folder)",
+      "type": "shell",
+      "command": "tflint",
+      "args": ["--recursive"],
+      "options": { "cwd": "${fileDirname}" },
+      "problemMatcher": []
+    },
+    {
       "label": "terraform-docs: Generate README.md (repo)",
       "type": "shell",
       "command": "terraform-docs",
