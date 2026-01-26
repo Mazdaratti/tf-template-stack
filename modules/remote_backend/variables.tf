@@ -25,9 +25,3 @@ variable "lock_table_name" {
   type        = string
   default     = null
 }
-
-variable "prevent_destroy" {
-  description = "Enable lifecycle prevent_destroy on S3 bucket and DynamoDB table."
-  type        = bool
-  default     = false
-}

@@ -1,0 +1,8 @@
+project_name = "tf-template-stack"
+environment  = "dev"
+aws_region   = "eu-central-1"
+
+common_tags = {
+  Team      = "Platform"
+  ManagedBy = "Terraform"
+}
