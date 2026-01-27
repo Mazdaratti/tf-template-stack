@@ -1,0 +1,15 @@
+project_name = "tf-template-stack"
+environment  = "dev"
+aws_region   = "eu-central-1"
+
+common_tags = {
+  Team      = "Platform"
+  ManagedBy = "Terraform"
+}
+
+github_org  = "YOUR_GITHUB_ORG_OR_USERNAME"
+github_repo = "YOUR_REPO_NAME"
+# github_branch = "main"
+
+# attach_admin_policy = false
+# create_permissions_boundary = true
