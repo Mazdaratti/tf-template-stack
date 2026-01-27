@@ -25,7 +25,7 @@
       "label": "TFLint: Lint (current folder)",
       "type": "shell",
       "command": "tflint",
-      "args": ["--recursive"],
+      "args": [],
       "options": { "cwd": "${fileDirname}" },
       "problemMatcher": []
     },
@@ -48,14 +48,6 @@
       "problemMatcher": []
     },
     {
-      "label": "terraform-docs: Env stage README (inject)",
-      "type": "shell",
-      "command": "terraform-docs",
-      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
-      "options": { "cwd": "${workspaceFolder}/envs/stage" },
-      "problemMatcher": []
-    },
-    {
       "label": "terraform-docs: Generate README (current folder)",
       "type": "shell",
       "command": "terraform-docs",
@@ -64,22 +56,11 @@
       "problemMatcher": []
     },
     {
-      "label": "Terraform (dev): Init",
+      "label": "Terraform: Init (current folder)",
       "type": "shell",
       "command": "terraform",
-      "args": ["init"],
-      "options": {
-        "cwd": "${workspaceFolder}/envs/dev"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Terraform (dev): Validate",
-      "type": "shell",
-      "command": "terraform",
-      "args": ["validate"],
-      "options": {
-        "cwd": "${workspaceFolder}/envs/dev"
+      "args": ["init", "-input=false"],
+      "options": { "cwd": "${fileDirname}"
       },
       "problemMatcher": []
     },
@@ -90,18 +71,16 @@
       "args": ["validate"],
       "options": { "cwd": "${fileDirname}" },
       "problemMatcher": []
-  },
-  {
-    "label": "Terraform (dev): Plan",
-    "type": "shell",
-    "command": "terraform",
-      "args": ["plan", "-var-file=dev.tfvars"],
-      "options": {
-        "cwd": "${workspaceFolder}/envs/dev"
-      },
-      "problemMatcher": []
-    }
-  ]
+    },
+    {
+      "label": "Terraform: Plan (current folder)",
+      "type": "shell",
+      "command": "terraform",
+        "args": ["plan"],
+        "options": { "cwd": "${fileDirname}" },
+        "problemMatcher": []
+      }
+    ]
 }
 
 
