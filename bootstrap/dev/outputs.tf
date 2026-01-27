@@ -17,3 +17,13 @@ output "tf_state_lock_table_arn" {
   description = "ARN of the DynamoDB table used for Terraform state locking."
   value       = module.remote_backend.lock_table_arn
 }
+
+output "github_actions_role_arn" {
+  description = "ARN of the IAM role created for GitHub Actions OIDC."
+  value       = aws_iam_role.github_actions.arn
+}
+
+output "github_oidc_provider_arn" {
+  description = "ARN of the GitHub OIDC provider."
+  value       = aws_iam_openid_connect_provider.github.arn
+}

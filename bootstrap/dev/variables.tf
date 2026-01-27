@@ -33,4 +33,33 @@ variable "lock_table_name" {
   default     = null
 }
 
+variable "github_org" {
+  description = "GitHub organization/user name that owns the repository."
+  type        = string
+}
+
+variable "github_repo" {
+  description = "GitHub repository name."
+  type        = string
+}
+
+variable "github_branch" {
+  description = "GitHub branch name allowed to assume the role."
+  type        = string
+  default     = "main"
+}
+
+variable "attach_admin_policy" {
+  description = "Whether to attach AWS managed AdministratorAccess policy to the GitHub Actions role (broad permissions)."
+  type        = bool
+  default     = false
+}
+
+variable "create_permissions_boundary" {
+  description = "If true, create and attach an example permissions boundary to the role. Recommend true as a guardrail example"
+  type        = bool
+  default     = true
+}
+
+
 

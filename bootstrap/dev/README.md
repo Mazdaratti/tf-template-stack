@@ -1,8 +1,53 @@
 # Bootstrap (dev)
 
-This bootstrap stack provisions the Terraform remote backend (S3 + DynamoDB) using `modules/remote_backend`.
+This folder contains the **one-time bootstrap stack** for the `dev` environment.
 
-It also generates `envs/dev/backend.tf` automatically after apply.
+It provisions prerequisites needed before you can deploy real infrastructure via Terraform:
+
+- **Remote Terraform state backend**
+  - S3 bucket for state
+  - DynamoDB table for state locking
+- **GitHub Actions OIDC authentication**
+  - OIDC provider for GitHub
+  - IAM role that GitHub Actions can assume (main branch only)
+
+It also **generates `envs/dev/backend.tf` automatically** after apply, so you don’t need to create the backend configuration manually.
+
+---
+
+## What this bootstrap stack is for
+
+Run this stack when you:
+- create a new AWS account / new environment
+- set up a new infrastructure project
+- want CI/CD (GitHub Actions) to provision infrastructure using Terraform
+
+You typically run it **once**, and only update it if you change backend or IAM/OIDC settings.
+
+---
+
+## GitHub Actions OIDC (default security model)
+
+This stack creates an IAM role for GitHub Actions:
+
+- ✅ Trust is restricted to **your repo + `main` branch**
+- ✅ By default, permissions allow only:
+  - Terraform state bucket access (S3)
+  - Terraform lock table access (DynamoDB)
+
+### Optional: broad permissions for prototyping
+If you want Terraform to create AWS resources during early development, you can temporarily enable:
+
+- `attach_admin_policy = true`
+
+⚠️ This attaches `AdministratorAccess`. Use it for quick prototyping only, then replace it later with least-privilege policies per service/module.
+
+### Example permissions boundary (starter)
+This stack can also create a **starter permissions boundary** (example guardrail) for the GitHub Actions role.
+
+This is meant as an educational baseline — real organizations usually use stronger, centrally-managed IAM guardrails.
+
+---
 
 ## Usage
 
@@ -10,6 +55,7 @@ It also generates `envs/dev/backend.tf` automatically after apply.
 cd bootstrap/dev
 terraform init
 terraform apply
+
 
 ```
 
@@ -27,6 +73,7 @@ terraform apply
 
 | Name | Version |
 |------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.28.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | 2.6.1 |
 
 ## Modules
@@ -39,15 +86,28 @@ terraform apply
 
 | Name | Type |
 |------|------|
+| [aws_iam_openid_connect_provider.github](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
+| [aws_iam_policy.github_actions_boundary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.github_actions_state_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy_attachment.github_actions_admin](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy_attachment) | resource |
+| [aws_iam_role.github_actions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.github_actions_state](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [local_file.backend_config](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [aws_iam_policy_document.github_actions_state_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.github_assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_attach_admin_policy"></a> [attach\_admin\_policy](#input\_attach\_admin\_policy) | Whether to attach AWS managed AdministratorAccess policy to the GitHub Actions role (broad permissions). | `bool` | `false` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region where bootstrap resources will be created. | `string` | `"eu-central-1"` | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags applied to resources. | `map(string)` | `{}` | no |
+| <a name="input_create_permissions_boundary"></a> [create\_permissions\_boundary](#input\_create\_permissions\_boundary) | If true, create and attach an example permissions boundary to the role. Recommend true as a guardrail example | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev/stage/prod). Used for naming and for writing env backend.tf. | `string` | `"dev"` | no |
+| <a name="input_github_branch"></a> [github\_branch](#input\_github\_branch) | GitHub branch name allowed to assume the role. | `string` | `"main"` | no |
+| <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization/user name that owns the repository. | `string` | n/a | yes |
+| <a name="input_github_repo"></a> [github\_repo](#input\_github\_repo) | GitHub repository name. | `string` | n/a | yes |
 | <a name="input_lock_table_name"></a> [lock\_table\_name](#input\_lock\_table\_name) | Optional override for the Terraform lock DynamoDB table name. | `string` | `null` | no |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_state_bucket_name"></a> [state\_bucket\_name](#input\_state\_bucket\_name) | Optional override for the Terraform state S3 bucket name. | `string` | `null` | no |
@@ -56,6 +116,8 @@ terraform apply
 
 | Name | Description |
 |------|-------------|
+| <a name="output_github_actions_role_arn"></a> [github\_actions\_role\_arn](#output\_github\_actions\_role\_arn) | ARN of the IAM role created for GitHub Actions OIDC. |
+| <a name="output_github_oidc_provider_arn"></a> [github\_oidc\_provider\_arn](#output\_github\_oidc\_provider\_arn) | ARN of the GitHub OIDC provider. |
 | <a name="output_tf_state_bucket_arn"></a> [tf\_state\_bucket\_arn](#output\_tf\_state\_bucket\_arn) | ARN of the S3 bucket used for Terraform state. |
 | <a name="output_tf_state_bucket_name"></a> [tf\_state\_bucket\_name](#output\_tf\_state\_bucket\_name) | Name of the S3 bucket used for Terraform state. |
 | <a name="output_tf_state_lock_table_arn"></a> [tf\_state\_lock\_table\_arn](#output\_tf\_state\_lock\_table\_arn) | ARN of the DynamoDB table used for Terraform state locking. |
