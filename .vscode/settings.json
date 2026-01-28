@@ -20,5 +20,20 @@
     "**/.terraform": true,
     "**/node_modules": true,
     "**/.tflint.d": true
-  }
+  },
+  // --- AI setup: Windsurf inline suggestions, Copilot chat only ---
+  "editor.inlineSuggest.enabled": true,
+
+  // IMPORTANT: make sure you do NOT suppress Codeium/Windsurf here.
+  // If you previously had "codeium.codeium" in this setting, remove it.
+  "editor.inlineSuggest.suppressSuggestions": "",
+
+  // Disable Copilot inline completions everywhere (Chat still works)
+  "github.copilot.enable": {
+    "*": false
+  },
+
+  // Extra safety (some versions still read this)
+  "github.copilot.inlineSuggest.enable": false
 }
+

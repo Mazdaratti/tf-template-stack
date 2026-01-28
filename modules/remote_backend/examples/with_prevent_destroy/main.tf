@@ -11,9 +11,8 @@ provider "aws" {
 module "remote_backend" {
   source = "../.."
 
-  project_name    = "remote-backend-test"
-  environment     = "prod"
-  prevent_destroy = true
+  project_name = "remote-backend-test"
+  environment  = "prod"
 
   common_tags = {
     Project      = "tf-template-stack"
