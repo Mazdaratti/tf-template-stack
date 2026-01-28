@@ -11,8 +11,8 @@ module "network" {
   vpc_cidr = "10.10.0.0/16"
 
   # Hybrid defaults path (no explicit azs or subnet CIDRs)
-  az_count            = 2
-  public_subnet_count = 2
+  az_count             = 2
+  public_subnet_count  = 2
   private_subnet_count = 2
 
   common_tags = {
