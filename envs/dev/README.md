@@ -109,7 +109,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_Network"></a> [Network](#module\_Network) | ../../modules/network | n/a |
+| <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
 
 ## Resources
 

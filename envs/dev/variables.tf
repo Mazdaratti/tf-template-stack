@@ -33,14 +33,14 @@ variable "enable_dns_support" {
   description = "Whether DNS resolution is supported for the VPC."
   type        = bool
   default     = true
- 
+
 }
 
 variable "enable_dns_hostnames" {
   description = "Whether instances in the VPC get DNS hostnames."
   type        = bool
   default     = true
-  
+
 }
 variable "vpc_cidr" {
   description = "The CIDR block for the VPC."
