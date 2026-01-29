@@ -32,7 +32,7 @@ terraform.rc
 *.tfplan
 
 # Ignore .terraform.lock.hcl if using remote backend
-# .terraform.lock.hcl
+.terraform.lock.hcl
 
 # Terraform test artifacts
 .terraform/tests/
