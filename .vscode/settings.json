@@ -26,7 +26,7 @@
 
   // IMPORTANT: make sure you do NOT suppress Codeium/Windsurf here.
   // If you previously had "codeium.codeium" in this setting, remove it.
-  "editor.inlineSuggest.suppressSuggestions": "",
+  "editor.inlineSuggest.suppressSuggestions": false,
 
   // Disable Copilot inline completions everywhere (Chat still works)
   "github.copilot.enable": {

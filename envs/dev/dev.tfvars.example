@@ -1,0 +1,85 @@
+############################################
+# Dev environment example configuration
+# Copy this file to: dev.tfvars
+############################################
+
+# ---- Core ----
+project_name = "tf-template-stack"
+environment  = "dev"
+
+# Region used by providers.tf
+aws_region = "eu-central-1"
+
+# Tags passed into modules. Modules will enforce:
+# Project, Environment, ManagedBy="Terraform"
+# and merge these common_tags with enforced tags.
+common_tags = {
+  Team = "Platform"
+}
+
+# ---- Network (VPC) ----
+# Required
+vpc_cidr = "10.10.0.0/16"
+
+# DNS defaults (module defaults: true)
+# enable_dns_support   = true
+# enable_dns_hostnames = true
+
+############################################
+# AZ selection (HYBRID)
+############################################
+
+# Default behavior:
+# - If azs is NOT set, the module takes the first az_count AZs available in the region.
+az_count = 2
+
+# Optional: explicit AZ list (overrides az_count)
+# azs = ["eu-central-1a", "eu-central-1b"]
+
+############################################
+# Subnet creation toggles
+############################################
+
+# Defaults (module defaults): true
+create_public_subnets  = true
+create_private_subnets = true
+
+# Public subnet behavior (default: true)
+map_public_ip_on_launch = true
+
+############################################
+# Subnet configuration (HYBRID)
+############################################
+
+# Default behavior:
+# - If explicit CIDR lists are NOT set, subnets are derived automatically from vpc_cidr.
+# - Counts control how many subnets are created.
+public_subnet_count  = 2
+private_subnet_count = 2
+
+# Optional: explicit subnet CIDRs (full control)
+# If set, counts are ignored and the list lengths are used.
+#
+# public_subnet_cidrs = [
+#   "10.10.10.0/24",
+#   "10.10.11.0/24"
+# ]
+#
+# private_subnet_cidrs = [
+#   "10.10.110.0/24",
+#   "10.10.111.0/24"
+# ]
+
+############################################
+# Examples of alternative setups
+############################################
+
+# 1) Private-only VPC (no IGW/public routing):
+# create_public_subnets  = false
+# create_private_subnets = true
+# private_subnet_count   = 2
+
+# 2) Public-only VPC (rare but possible):
+# create_public_subnets  = true
+# create_private_subnets = false
+# public_subnet_count    = 2

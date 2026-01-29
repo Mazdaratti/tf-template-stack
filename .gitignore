@@ -31,8 +31,11 @@ terraform.rc
 # Ignore plan files
 *.tfplan
 
+# Ignore backend.tf if using remote backend
+envs/*/backend.tf
+
 # Ignore .terraform.lock.hcl if using remote backend
-# .terraform.lock.hcl
+.terraform.lock.hcl
 
 # Terraform test artifacts
 .terraform/tests/
