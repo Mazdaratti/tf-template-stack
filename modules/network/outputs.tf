@@ -54,12 +54,12 @@ output "private_route_table_ids" {
 
 output "public_subnet_ids_by_az_id" {
   description = "Map of AZ ID => public subnet ID (stable across AWS accounts)."
-  value       = { for _, s in aws_subnet.public : s.availability_zone => s.id }
+  value       = { for _, s in aws_subnet.public : s.availability_zone_id => s.id }
 }
 
 output "private_subnet_ids_by_az_id" {
   description = "Map of AZ ID => private subnet ID (stable across AWS accounts)."
-  value       = { for _, s in aws_subnet.private : s.availability_zone => s.id }
+  value       = { for _, s in aws_subnet.private : s.availability_zone_id => s.id }
 }
 
 output "public_subnet_cidrs_by_az_id" {
