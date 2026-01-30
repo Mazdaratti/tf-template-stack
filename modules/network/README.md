@@ -136,10 +136,14 @@ No modules.
 | <a name="output_internet_gateway_id"></a> [internet\_gateway\_id](#output\_internet\_gateway\_id) | The ID of the internet gateway if created, otherwise null |
 | <a name="output_private_route_table_ids"></a> [private\_route\_table\_ids](#output\_private\_route\_table\_ids) | A map of AZ name =>private route table ID (empty if none) |
 | <a name="output_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#output\_private\_subnet\_cidrs) | A list of CIDRs of private subnets (empty if none) |
-| <a name="output_private_subnets_ids"></a> [private\_subnets\_ids](#output\_private\_subnets\_ids) | A list of IDs of private subnets (empty if none) |
+| <a name="output_private_subnet_cidrs_by_az_id"></a> [private\_subnet\_cidrs\_by\_az\_id](#output\_private\_subnet\_cidrs\_by\_az\_id) | Map of AZ ID => private subnet CIDR (stable across AWS accounts). |
+| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | A list of IDs of private subnets (empty if none) |
+| <a name="output_private_subnet_ids_by_az_id"></a> [private\_subnet\_ids\_by\_az\_id](#output\_private\_subnet\_ids\_by\_az\_id) | Map of AZ ID => private subnet ID (stable across AWS accounts). |
 | <a name="output_public_route_table_id"></a> [public\_route\_table\_id](#output\_public\_route\_table\_id) | The ID of the public route table if created, otherwise null |
 | <a name="output_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#output\_public\_subnet\_cidrs) | A list of CIDRs of public subnets (empty if none) |
-| <a name="output_public_subnets_ids"></a> [public\_subnets\_ids](#output\_public\_subnets\_ids) | A list of IDs of public subnets (empty if none) |
+| <a name="output_public_subnet_cidrs_by_az_id"></a> [public\_subnet\_cidrs\_by\_az\_id](#output\_public\_subnet\_cidrs\_by\_az\_id) | Map of AZ ID => public subnet CIDR (stable across AWS accounts). |
+| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | A list of IDs of public subnets (empty if none) |
+| <a name="output_public_subnet_ids_by_az_id"></a> [public\_subnet\_ids\_by\_az\_id](#output\_public\_subnet\_ids\_by\_az\_id) | Map of AZ ID => public subnet ID (stable across AWS accounts). |
 | <a name="output_vpc_arn"></a> [vpc\_arn](#output\_vpc\_arn) | The ARN of the VPC |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 <!-- END_TF_DOCS -->
