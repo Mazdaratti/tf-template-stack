@@ -13,12 +13,12 @@ output "azs" {
   value       = local.azs
 }
 
-output "public_subnets_ids" {
+output "public_subnet_ids" {
   description = "A list of IDs of public subnets (empty if none)"
   value       = [for s in aws_subnet.public : s.id]
 }
 
-output "private_subnets_ids" {
+output "private_subnet_ids" {
   description = "A list of IDs of private subnets (empty if none)"
   value       = [for s in aws_subnet.private : s.id]
 }
@@ -46,4 +46,29 @@ output "public_route_table_id" {
 output "private_route_table_ids" {
   description = "A map of AZ name =>private route table ID (empty if none)"
   value       = { for az, rt in aws_route_table.private : az => rt.id }
+}
+
+############################################
+# AZ ID keyed outputs (stable across accounts)
+############################################
+
+output "public_subnet_ids_by_az_id" {
+  description = "Map of AZ ID => public subnet ID (stable across AWS accounts)."
+  value       = { for _, s in aws_subnet.public : s.availability_zone => s.id}
+}
+
+output "private_subnet_ids_by_az_id" {
+  description = "Map of AZ ID => private subnet ID (stable across AWS accounts)."
+  value       = { for _, s in aws_subnet.private : s.availability_zone => s.id}
+}
+
+output "public_subnet_cidrs_by_az_id" {
+  description = "Map of AZ ID => public subnet CIDR (stable across AWS accounts)."
+  value       = { for _, s in aws_subnet.public : s.availability_zone_id => s.cidr_block}
+  
+}
+
+output "private_subnet_cidrs_by_az_id" {
+  description = "Map of AZ ID => private subnet CIDR (stable across AWS accounts)."
+  value       = { for _, s in aws_subnet.private : s.availability_zone_id => s.cidr_block}
 }
