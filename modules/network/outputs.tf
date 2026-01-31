@@ -43,9 +43,20 @@ output "public_route_table_id" {
   value       = local.public_count > 0 ? aws_route_table.public[0].id : null
 }
 
-output "private_route_table_ids" {
+output "private_route_table_ids_by_az" {
   description = "A map of AZ name =>private route table ID (empty if none)"
   value       = { for az, rt in aws_route_table.private : az => rt.id }
+}
+
+output "public_subnet_ids_by_az" {
+  description = "A map of AZ name =>public subnet ID (empty if none)"
+  value       = { for _, s in aws_subnet.public : s.availability_zone => s.id }
+
+}
+
+output "private_subnet_ids_by_az" {
+  description = "A map of AZ name =>private subnet ID (empty if none)"
+  value       = { for _, s in aws_subnet.private : s.availability_zone => s.id }
 }
 
 ############################################
