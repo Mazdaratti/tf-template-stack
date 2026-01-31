@@ -12,12 +12,12 @@ output "azs" {
 
 output "public_subnet_ids" {
   description = "A list of IDs of public subnets (empty if none)"
-  value       = module.network.public_subnets_ids
+  value       = module.network.public_subnet_ids
 }
 
 output "private_subnet_ids" {
   description = "A list of IDs of private subnets (empty if none)"
-  value       = module.network.private_subnets_ids
+  value       = module.network.private_subnet_ids
 }
 
 output "public_subnet_cidrs" {
@@ -35,9 +35,21 @@ output "public_route_table_id" {
   value       = module.network.public_route_table_id
 }
 
-output "private_route_table_ids" {
+############################################
+# AZ name keyed outputs (useful for NAT wiring)
+############################################
+
+output "private_route_table_ids_by_az" {
   description = "A map of AZ name =>private route table ID (empty if none)"
-  value       = module.network.private_route_table_ids
+  value       = module.network.private_route_table_ids_by_az
 }
 
+output "public_subnet_ids_by_az" {
+  description = "A map of AZ name =>public subnet ID (empty if none)"
+  value       = module.network.public_subnet_ids_by_az
+}
 
+output "private_subnet_ids_by_az" {
+  description = "A map of AZ name =>private subnet ID (empty if none)"
+  value       = module.network.private_subnet_ids_by_az
+}
