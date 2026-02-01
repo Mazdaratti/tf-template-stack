@@ -48,7 +48,7 @@ variable "create_routes" {
 # Wiring inputs from network module
 ############################################
 
-variable "public_cubnet_ids_by_az" {
+variable "public_subnet_ids_by_az" {
   description = "Map of AZ name => public subnet ID (from modules/network). Required when enabled=true."
   type        = map(string)
   default     = {}
