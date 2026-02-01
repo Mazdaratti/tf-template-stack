@@ -30,9 +30,6 @@ locals {
   ## True if we create a NAT Gateway per AZ (recommended for prod)
   is_per_az = var.mode == "per_az"
 
-  ## True if we create a single NAT Gateway (recommended for dev/staging)
-  is_single = var.mode == "single"
-
   # Keys we use for resource addressing:
   # - per_az mode  => one key per AZ name
   # - single mode  => one key "single"
