@@ -15,29 +15,16 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - Generate docs for any env/module folder by opening a file in that folder and running:
   **terraform-docs: Generate README (current folder)**.
 
+## Modules
 
+- **network** — VPC + subnets + route tables (no NAT)
+- **nat_gateway** — NAT Gateway(s) + private outbound routes
+- **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
 
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+## Recommended order
 
-No requirements.
-
-## Providers
-
-No providers.
-
-## Resources
-
-No resources.
-
-## Inputs
-
-No inputs.
-
-## Outputs
-
-No outputs.
-<!-- END_TF_DOCS -->
+1) `bootstrap/dev` (remote backend + OIDC)
+2) `envs/dev` (network, nat, compute modules...)
 
 ## Environments
 
