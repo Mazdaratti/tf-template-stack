@@ -30,16 +30,6 @@
       "problemMatcher": []
     },
     {
-      "label": "terraform-docs: Generate README.md (repo)",
-      "type": "shell",
-      "command": "terraform-docs",
-      "args": ["markdown", "table", ".", "--output-file", "README.md", "--output-mode", "inject"],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "terraform-docs: Env dev README (inject)",
       "type": "shell",
       "command": "terraform-docs",
