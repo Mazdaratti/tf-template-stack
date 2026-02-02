@@ -41,7 +41,7 @@ module "network" {
     Team = "Platform"
   }
 }
-````
+```
 
 ### Explicit subnets (full control)
 
