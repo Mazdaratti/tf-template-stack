@@ -53,3 +53,22 @@ output "private_subnet_ids_by_az" {
   description = "A map of AZ name =>private subnet ID (empty if none)"
   value       = module.network.private_subnet_ids_by_az
 }
+
+############################################
+# NAT Gateway
+############################################
+
+output "nat_gateway_ids" {
+  description = "Map of NAT key => NAT Gateway ID. Keys are AZ names in per_az mode or 'single' in single mode."
+  value       = module.nat_gateway.nat_gateway_ids
+}
+
+output "nat_gateway_public_ips" {
+  description = "Map of NAT key => public IP address of the NAT Gateway."
+  value       = module.nat_gateway.nat_gateway_public_ips
+}
+
+output "nat_eip_allocation_ids" {
+  description = "Map of NAT key => EIP allocation ID used by the NAT Gateway."
+  value       = module.nat_gateway.eip_allocation_ids
+}
