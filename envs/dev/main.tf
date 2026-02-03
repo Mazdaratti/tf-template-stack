@@ -34,3 +34,29 @@ module "network" {
   # Public subnet behavior
   map_public_ip_on_launch = var.map_public_ip_on_launch
 }
+
+###################################
+# MODULE - NAT GATEWAY
+###################################
+
+module "nat_gateway" {
+  source = "../../modules/nat_gateway"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Wiring from network module outputs (AZ-name keyed)
+  public_subnet_ids_by_az       = module.network.public_subnet_ids_by_az
+  private_route_table_ids_by_az = module.network.private_route_table_ids_by_az
+
+  # Defaults for dev (can be overridden via variables.tf)
+  enabled       = var.enable_nat_gateway
+  mode          = var.nat_gateway_mode
+  create_routes = var.create_routes
+
+  # Optional: reuse existing EIPs (leave null to create new EIPs)
+  reuse_eip_allocation_ids = var.nat_reuse_eip_allocation_ids
+}
+
