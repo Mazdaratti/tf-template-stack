@@ -36,7 +36,7 @@ module "network" {
 }
 
 ###################################
-# MODULE - NAT GATEWAY
+# MODULE - NAT GATEWAY 
 ###################################
 
 module "nat_gateway" {
@@ -54,7 +54,7 @@ module "nat_gateway" {
   # Defaults for dev (can be overridden via variables.tf)
   enabled       = var.enable_nat_gateway
   mode          = var.nat_gateway_mode
-  create_routes = var.create_routes
+  create_routes = var.nat_create_routes
 
   # Optional: reuse existing EIPs (leave null to create new EIPs)
   reuse_eip_allocation_ids = var.nat_reuse_eip_allocation_ids
