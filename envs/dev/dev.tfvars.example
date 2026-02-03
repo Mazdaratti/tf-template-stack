@@ -83,3 +83,21 @@ private_subnet_count = 2
 # create_public_subnets  = true
 # create_private_subnets = false
 # public_subnet_count    = 2
+
+############################################
+# NAT Gateway (optional)
+############################################
+
+# Whether to create NAT Gateway resources (required for private outbound access)
+enable_nat_gateway = true
+
+# NAT mode:
+# - "single" (cheaper dev)
+# - "per_az" (recommended for prod)
+nat_gateway_mode = "single"
+
+# Whether to create default routes in private route tables pointing to NAT
+nat_create_routes = true
+
+# Optional: reuse existing EIP allocation IDs (set to null to create new EIPs)
+nat_reuse_eip_allocation_ids = null
