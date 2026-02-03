@@ -116,5 +116,36 @@ variable "map_public_ip_on_launch" {
   default     = true
 }
 
+############################################
+# NAT Gateway module (optioanal)
+############################################
 
+variable "enable_nat_gateway" {
+  description = "Whether to create NAT Gateway resources for private outbound internet access."
+  type        = bool
+  default     = true
+}
+
+variable "nat_gateway_mode" {
+  description = "NAT mode: per_az (recommended) or single (cheaper dev)."
+  type        = string
+  default     = "single"
+
+  validation {
+    condition     = contains(["per_az", "single"], var.nat_gateway_mode)
+    error_message = "NAT mode must be one of 'per_az' or 'single'."
+  }
+}
+
+variable "nat_create_routes" {
+  description = "Whether to create default routes in private route tables pointing to NAT."
+  type        = bool
+  default     = true
+}
+
+variable "nat_reuse_eip_allocation_ids" {
+  description = "Optional list of existing EIP allocation IDs to reuse. If null, the module creates new EIPs."
+  type        = list(string)
+  default     = null
+}
 
