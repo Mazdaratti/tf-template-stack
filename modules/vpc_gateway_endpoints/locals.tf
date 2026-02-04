@@ -19,9 +19,12 @@ locals {
 ############################################
 
 locals {
-  # Region used to build service names (falls back to provider region)  
+  # Region used to build service names (falls back to provider region)
   effective_region = coalesce(var.region, data.aws_region.current.region)
 
   # Enabled gateway endpoints based on flags
-  enabled_services = toset(compact([var.gateway_endpoints.s3 ? "s3" : null]))
+  enabled_services = toset(compact([
+    var.gateway_endpoints.s3 ? "s3" : null,
+    var.gateway_endpoints.dynamodb ? "dynamodb" : null
+  ]))
 }
