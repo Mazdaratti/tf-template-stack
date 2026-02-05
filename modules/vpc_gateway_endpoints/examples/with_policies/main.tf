@@ -26,12 +26,12 @@ resource "aws_route_table" "private" {
 # Resources used in endpoint policies
 ############################################
 
-resource "aws_s3_bucket" "example" {
-  bucket = "gateway-endpoints-policy-example-${random_id.suffix.hex}"
-}
-
 resource "random_id" "suffix" {
   byte_length = 4
+}
+
+resource "aws_s3_bucket" "example" {
+  bucket = "gateway-endpoints-policy-example-${random_id.suffix.hex}"
 }
 
 resource "aws_dynamodb_table" "example" {
@@ -58,6 +58,10 @@ data "aws_iam_policy_document" "s3_endpoint" {
     ]
 
     resources = [
+      # In real projects, replace with:
+      # module.s3_bucket.bucket_arn
+      # or
+      # var.s3_bucket_arn
       aws_s3_bucket.example.arn,
       "${aws_s3_bucket.example.arn}/*"
     ]
@@ -73,6 +77,10 @@ data "aws_iam_policy_document" "dynamodb_endpoint" {
     ]
 
     resources = [
+      # In real projects, replace with:
+      # module.dynamodb_table.table_arn
+      # or
+      # var.dynamodb_table_arn
       aws_dynamodb_table.example.arn
     ]
   }
