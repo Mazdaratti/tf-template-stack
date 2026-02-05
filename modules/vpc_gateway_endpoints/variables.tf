@@ -31,7 +31,23 @@ variable "route_table_ids" {
   description = "List of route table IDs to attach the gateway endpoints to (typically private route tables)."
   type        = list(string)
   default     = []
+
+  # Gateway endpoints only function when attached to route tables.
+  # This validation prevents a silent misconfiguration where endpoints
+  # are enabled but not associated with any route table.
+  #
+  # Logic:
+  # - If both endpoints are disabled → allow empty list
+  # - If any endpoint is enabled → require at least one route table ID
+  validation {
+    condition = (
+      !(var.gateway_endpoints.s3 || var.gateway_endpoints.dynamodb)
+      || length(var.route_table_ids) > 0
+    )
+    error_message = "route_table_ids must be non-empty when gateway endpoints are enabled."
+  }
 }
+
 
 variable "region" {
   description = "AWS region used to build endpoint service names. If null, uses the provider region."
