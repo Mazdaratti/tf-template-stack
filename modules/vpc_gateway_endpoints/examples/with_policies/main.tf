@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "dynamodb_endpoint" {
 # Module call
 ############################################
 
-module "gateway_endpoints" {
+module "vpc_gateway_endpoints" {
   source = "../../"
 
   project_name = "gateway-endpoints-policy-example"
