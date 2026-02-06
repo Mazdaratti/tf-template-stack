@@ -60,3 +60,26 @@ module "nat_gateway" {
   reuse_eip_allocation_ids = var.nat_reuse_eip_allocation_ids
 }
 
+###################################
+# MODULE - VPC GATEWAY ENDPOINTS (S3, DynamoDB)
+###################################
+
+module "gateway_endpoints" {
+  source = "../../modules/vpc_gateway_endpoints"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Wiring from network module outputs
+  vpc_id = module.network.vpc_id
+  # Recommended: attach gateway endpoints to private route tables
+  route_table_ids = values(module.network.private_route_table_ids_by_az)
+
+  # Enable both endpoints by default in dev for testing/demo purposes
+  gateway_endpoints = {
+    s3       = true
+    dynamodb = true
+  }
+}
