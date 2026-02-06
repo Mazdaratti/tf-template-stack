@@ -82,4 +82,11 @@ module "gateway_endpoints" {
     s3       = true
     dynamodb = true
   }
+
+  # Optional: define endpoint policies using aws_iam_policy_document
+  # If a service is omitted, AWS default policy is used.
+  # endpoint_policy_json = {
+  #   s3       = data.aws_iam_policy_document.vpce_s3_restricted.json
+  #   dynamodb = data.aws_iam_policy_document.vpce_dynamodb_restricted.json
+  # }
 }
