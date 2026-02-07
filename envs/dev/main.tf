@@ -64,7 +64,7 @@ module "nat_gateway" {
 # MODULE - VPC GATEWAY ENDPOINTS (S3, DynamoDB)
 ###################################
 
-module "gateway_endpoints" {
+module "vpc_gateway_endpoints" {
   source = "../../modules/vpc_gateway_endpoints"
 
   # Identity + tags
