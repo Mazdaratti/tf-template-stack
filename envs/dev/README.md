@@ -1,43 +1,48 @@
 # Development Environment (dev)
 
-This folder contains the Terraform root configuration for the **dev** environment.
+This folder contains the Terraform **root module** for the **dev** environment.
 
-It is part of the **tf-template-stack** template and is meant to be reusable in real-world projects.
+It is part of the **tf-template-stack** and is designed to be:
+- reusable across real-world projects
+- easy to extend by adding new modules
+- thin (composition only, no complex logic)
 
 ---
 
-## How remote backend works in this template
+## Remote backend model used in this template
 
-This template uses a remote Terraform backend (S3 + DynamoDB) for state storage and state locking.
+This template uses a **remote Terraform backend** (S3 + DynamoDB) for:
+- state storage
+- state locking
 
-✅ You do NOT create `backend.tf` manually in this template.
+⚠️ **You do NOT create `backend.tf` manually.**
 
 Instead:
 
 1. Run the bootstrap stack:
    - `bootstrap/dev`
-2. Bootstrap will:
-   - create the S3 state bucket + DynamoDB lock table
+2. The bootstrap stack will:
+   - create the S3 state bucket
+   - create the DynamoDB lock table
    - generate `envs/dev/backend.tf` automatically
 
-`backend.tf` is treated as a generated artifact.
+`backend.tf` is treated as a **generated artifact**.
 
-> `backend.tf.example` exists only to document what the generated backend configuration looks like.  
-> ⚠️ Do not commit `backend.tf` — it is generated per environment and may differ between accounts/projects.
+> `backend.tf.example` exists only to document the expected backend configuration shape.  
+> ⚠️ Never commit `backend.tf` — it is environment- and account-specific.
 
 ---
 
 ## How to use this environment
 
 ### Step 1 — Configure variables
+
 Copy the example file and adjust values:
 
-- `dev.tfvars.example` → `dev.tfvars`
-
-This template supports two styles:
+This environment supports two configuration styles:
 
 #### A) Hybrid defaults (recommended)
-You set:
+You define:
 - VPC CIDR
 - number of AZs
 - number of public/private subnets
@@ -45,44 +50,87 @@ You set:
 Subnet CIDRs are derived automatically.
 
 #### B) Explicit values (full control)
-You set:
+You define:
 - explicit AZ list
-- explicit public/private subnet CIDRs
+- explicit public subnet CIDRs
+- explicit private subnet CIDRs
 
 ---
 
-## What this environment deploys (current state)
+## What this environment deploys
 
-✅ Network baseline (VPC + subnets + routing)
-- Implemented via `modules/network`
+### Network baseline
+- VPC
+- public & private subnets
+- routing tables
+- internet gateway
 
-✅ NAT Gateway (private outbound internet)
-- Implemented via `modules/nat_gateway`
-- Supports:
-  - `single` (cheaper dev)
-  - `per_az` (recommended)
+Implemented via:
+- `modules/network`
 
+---
 
-More modules will be added over time (compute, load balancer, storage, etc.).
+### NAT Gateway (private outbound internet access)
+
+Provides outbound internet access for private subnets.
+
+Implemented via:
+- `modules/nat_gateway`
+
+Supported modes:
+- `single` — cheaper, suitable for dev
+- `per_az` — recommended for production-like setups
+
+---
+
+### Gateway VPC Endpoints (S3, DynamoDB)
+
+Provides **private connectivity** from private subnets to:
+- Amazon S3
+- Amazon DynamoDB
+
+Implemented via:
+- `modules/vpc_gateway_endpoints`
+
+Key characteristics:
+- attached to **private route tables**
+- removes the need for NAT access to S3/DynamoDB
+- supports optional endpoint policies
+
+#### Optional endpoint policies
+
+This environment includes a **commented policy template**:
+
+- `endpoint_policies.tf`
+
+It demonstrates:
+- broad (default-like) policies
+- restricted policies (recommended)
+- how to inject ARNs from other modules (e.g. storage, database)
+
+Policies are **disabled by default** and only applied if explicitly enabled.
 
 ---
 
 ## Files in this folder
 
-- `main.tf` — calls infrastructure modules (starting with `network`)
+- `main.tf` — wires infrastructure modules together
 - `providers.tf` — AWS provider configuration
-- `versions.tf` — Terraform/provider version constraints
-- `variables.tf` — environment inputs
+- `versions.tf` — Terraform and provider constraints
+- `variables.tf` — environment-level inputs
 - `outputs.tf` — environment outputs
-- `dev.tfvars.example` — documented configuration example
-- `backend.tf.example` — documentation of backend config format
+- `dev.tfvars.example` — documented variable examples
+- `backend.tf.example` — backend configuration example
+- `endpoint_policies.tf` — commented endpoint policy templates
 
 ---
 
-## Notes
+## Design principles
 
-- Keep this environment **thin**: it should mostly call modules and pass variables.
-- Prefer making changes inside modules to keep code reusable across environments.
+- Keep this environment **thin**
+- Prefer reusable logic inside modules
+- Treat this folder as a **composition layer**
+- Add new infrastructure by appending new module sections
 
 ---
 
@@ -90,7 +138,7 @@ More modules will be added over time (compute, load balancer, storage, etc.).
 
 Run the following commands from inside `envs/dev/`.
 
-> If you are using the remote backend, run `bootstrap/dev` first to generate `backend.tf`.
+> If using the remote backend, run `bootstrap/dev` first to generate `backend.tf`.
 
 ```shell
 terraform init
@@ -118,6 +166,7 @@ No providers.
 |------|--------|---------|
 | <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
+| <a name="module_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#module\_vpc\_gateway\_endpoints) | ../../modules/vpc_gateway_endpoints | n/a |
 
 ## Resources
 
@@ -153,6 +202,8 @@ No resources.
 | Name | Description |
 |------|-------------|
 | <a name="output_azs"></a> [azs](#output\_azs) | Availability zones used by the network module. |
+| <a name="output_dynamodb_gateway_endpoint_id"></a> [dynamodb\_gateway\_endpoint\_id](#output\_dynamodb\_gateway\_endpoint\_id) | VPC Endpoint ID for DynamoDB gateway endpoint (null if disabled). |
+| <a name="output_gateway_endpoints_ids"></a> [gateway\_endpoints\_ids](#output\_gateway\_endpoints\_ids) | Map of service name => VPC Endpoint ID for gateway endpoints (S3, DynamoDB). |
 | <a name="output_nat_eip_allocation_ids"></a> [nat\_eip\_allocation\_ids](#output\_nat\_eip\_allocation\_ids) | Map of NAT key => EIP allocation ID used by the NAT Gateway. |
 | <a name="output_nat_gateway_ids"></a> [nat\_gateway\_ids](#output\_nat\_gateway\_ids) | Map of NAT key => NAT Gateway ID. Keys are AZ names in per\_az mode or 'single' in single mode. |
 | <a name="output_nat_gateway_public_ips"></a> [nat\_gateway\_public\_ips](#output\_nat\_gateway\_public\_ips) | Map of NAT key => public IP address of the NAT Gateway. |
@@ -164,5 +215,6 @@ No resources.
 | <a name="output_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#output\_public\_subnet\_cidrs) | A list of CIDRs of public subnets (empty if none) |
 | <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | A list of IDs of public subnets (empty if none) |
 | <a name="output_public_subnet_ids_by_az"></a> [public\_subnet\_ids\_by\_az](#output\_public\_subnet\_ids\_by\_az) | A map of AZ name =>public subnet ID (empty if none) |
+| <a name="output_s3_gateway_endpoint_id"></a> [s3\_gateway\_endpoint\_id](#output\_s3\_gateway\_endpoint\_id) | VPC Endpoint ID for S3 gateway endpoint (null if disabled). |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 <!-- END_TF_DOCS -->

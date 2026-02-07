@@ -72,3 +72,23 @@ output "nat_eip_allocation_ids" {
   description = "Map of NAT key => EIP allocation ID used by the NAT Gateway."
   value       = module.nat_gateway.eip_allocation_ids
 }
+
+############################################
+# Gateway endpoints (S3, DynamoDB)
+############################################
+
+output "gateway_endpoints_ids" {
+  description = "Map of service name => VPC Endpoint ID for gateway endpoints (S3, DynamoDB)."
+  value       = module.vpc_gateway_endpoints.endpoint_ids
+}
+
+output "s3_gateway_endpoint_id" {
+  description = "VPC Endpoint ID for S3 gateway endpoint (null if disabled)."
+  value       = module.vpc_gateway_endpoints.s3_endpoint_id
+}
+
+output "dynamodb_gateway_endpoint_id" {
+  description = "VPC Endpoint ID for DynamoDB gateway endpoint (null if disabled)."
+  value       = module.vpc_gateway_endpoints.dynamodb_endpoint_id
+}
+
