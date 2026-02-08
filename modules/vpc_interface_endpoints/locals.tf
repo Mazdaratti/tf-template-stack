@@ -29,3 +29,19 @@ locals {
     if cfg.enabled
   }
 }
+
+############################################
+# Service name construction
+############################################
+
+locals {
+  # Interface endpoint service name is region-specific.
+  # Example:
+  #   com.amazonaws.eu-central-1.ssm
+  #
+  # We derive region from the AWS provider to avoid passing it manually.
+  service_names = {
+    for svc, _ in local.enabled_interface_endpoints :
+    svc => "com.amazonaws.${data.aws_region.current.region}.${svc}"
+  }
+}
