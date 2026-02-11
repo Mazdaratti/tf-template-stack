@@ -90,3 +90,47 @@ module "vpc_gateway_endpoints" {
   #   dynamodb = data.aws_iam_policy_document.vpce_dynamodb_restricted.json
   # }
 }
+
+############################################
+# VPC Interface Endpoints (PrivateLink)
+############################################
+
+module "vpc_interface_endpoints" {
+  source = "../../modules/vpc_interface_endpoints"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Wiring from network module outputs
+  vpc_id = module.network.vpc_id
+  # Recommended: attach gateway endpoints to private route tables
+  subnet_ids = module.network.private_subnet_ids
+
+  # Simple default for this template: module-managed SG
+  create_security_group = true
+
+  # Real-world option (recommended in platforms): external/shared SG
+  # - create_security_group = false
+  # - security_group_ids    = [aws_security_group.vpce_shared.id]
+  #
+  # security_group_ids = [aws_security_group.vpce_shared.id]
+
+
+  # Endpoints baseline for private management access + common platform services.
+  interface_endpoints = {
+    ssm            = { enabled = true }
+    ssmmessages    = { enabled = true }
+    ec2messages    = { enabled = true }
+    logs           = { enabled = true }
+    secretsmanager = { enabled = true }
+  }
+
+  # Optional: define endpoint policies using aws_iam_policy_document
+  # If a service is omitted, AWS default policy is used.
+  # endpoint_policy_json = {
+  #   secretsmanager = data.aws_iam_policy_document.vpce_secretsmanager_restricted.json
+  #   logs           = data.aws_iam_policy_document.vpce_logs_restricted.json
+  # }
+}

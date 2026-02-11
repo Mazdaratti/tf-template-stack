@@ -101,3 +101,55 @@ nat_create_routes = true
 
 # Optional: reuse existing EIP allocation IDs (set to null to create new EIPs)
 nat_reuse_eip_allocation_ids = null
+
+############################################
+# VPC Gateway Endpoints (S3, DynamoDB)
+############################################
+
+# Toggle gateway endpoints by service.
+# These endpoints attach to route tables (typically private route tables).
+# If a service is omitted or set to false, it will not be created.
+
+gateway_endpoints = {
+  s3       = true
+  dynamodb = true
+}
+
+############################################
+# Interface VPC Endpoints (PrivateLink)
+############################################
+
+# Toggle interface endpoints by service.
+# If a service is omitted, it will not be created.
+#
+# Recommended baseline for private compute:
+# - ssm
+# - ec2messages
+# - ssmmessages
+# - logs
+# - secretsmanager
+
+interface_endpoints = {
+  ssm = {
+    enabled = true
+  }
+  ec2messages = {
+    enabled = true
+  }
+  ssmmessages = {
+    enabled = true
+  }
+  logs = {
+    enabled = true
+  }
+  secretsmanager = {
+    enabled = true
+  }
+}
+
+# Security group handling:
+# By default the module creates a minimal SG.
+# For real platforms, prefer create_security_group = false
+# and pass external SG IDs in main.tf.
+#
+# create_security_group = true
