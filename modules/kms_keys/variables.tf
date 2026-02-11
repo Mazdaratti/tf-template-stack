@@ -15,7 +15,7 @@ variable "common_tags" {
 }
 
 variable "alias_prefix" {
-  description = "Optional prefix for KMS aliases. If null, defaults to '${project_name}-${environment}'."
+  description = "Optional prefix for KMS aliases. If null, defaults to '<project_name>-<environment>'."
   type        = string
   default     = null
 }
