@@ -3,32 +3,36 @@
 This folder contains the Terraform **root module** for the **dev** environment.
 
 It is part of the **tf-template-stack** and is designed to be:
-- reusable across real-world projects
-- easy to extend by adding new modules
-- thin (composition only, no complex logic)
+
+* reusable across real-world projects
+* easy to extend by adding new modules
+* thin (composition only, no complex logic)
 
 ---
 
 ## Remote backend model used in this template
 
 This template uses a **remote Terraform backend** (S3 + DynamoDB) for:
-- state storage
-- state locking
+
+* state storage
+* state locking
 
 ⚠️ **You do NOT create `backend.tf` manually.**
 
 Instead:
 
 1. Run the bootstrap stack:
-   - `bootstrap/dev`
+
+   * `bootstrap/dev`
 2. The bootstrap stack will:
-   - create the S3 state bucket
-   - create the DynamoDB lock table
-   - generate `envs/dev/backend.tf` automatically
+
+   * create the S3 state bucket
+   * create the DynamoDB lock table
+   * generate `envs/dev/backend.tf` automatically
 
 `backend.tf` is treated as a **generated artifact**.
 
-> `backend.tf.example` exists only to document the expected backend configuration shape.  
+> `backend.tf.example` exists only to document the expected backend configuration shape.
 > ⚠️ Never commit `backend.tf` — it is environment- and account-specific.
 
 ---
@@ -39,74 +43,127 @@ Instead:
 
 Copy the example file and adjust values:
 
+```
+dev.tfvars.example → dev.tfvars
+```
+
 This environment supports two configuration styles:
 
 #### A) Hybrid defaults (recommended)
+
 You define:
-- VPC CIDR
-- number of AZs
-- number of public/private subnets
+
+* VPC CIDR
+* number of AZs
+* number of public/private subnets
 
 Subnet CIDRs are derived automatically.
 
 #### B) Explicit values (full control)
+
 You define:
-- explicit AZ list
-- explicit public subnet CIDRs
-- explicit private subnet CIDRs
+
+* explicit AZ list
+* explicit public subnet CIDRs
+* explicit private subnet CIDRs
 
 ---
 
-## What this environment deploys
+# What this environment deploys
 
-### Network baseline
-- VPC
-- public & private subnets
-- routing tables
-- internet gateway
+The dev environment is composed of reusable modules.
+
+Each section below corresponds to **one module block in `main.tf`**.
+
+New infrastructure is added by appending additional module blocks.
+
+---
+
+## Network baseline
+
+Creates the foundational VPC layer:
+
+* VPC
+* public & private subnets
+* route tables
+* internet gateway
 
 Implemented via:
-- `modules/network`
+
+* `modules/network`
 
 ---
 
-### NAT Gateway (private outbound internet access)
+## NAT Gateway (private outbound internet access)
 
 Provides outbound internet access for private subnets.
 
 Implemented via:
-- `modules/nat_gateway`
+
+* `modules/nat_gateway`
 
 Supported modes:
-- `single` — cheaper, suitable for dev
-- `per_az` — recommended for production-like setups
+
+* `single` — cheaper, suitable for dev
+* `per_az` — recommended for production-like setups
 
 ---
 
-### Gateway VPC Endpoints (S3, DynamoDB)
+## Gateway VPC Endpoints (S3, DynamoDB)
 
 Provides **private connectivity** from private subnets to:
-- Amazon S3
-- Amazon DynamoDB
+
+* Amazon S3
+* Amazon DynamoDB
 
 Implemented via:
-- `modules/vpc_gateway_endpoints`
+
+* `modules/vpc_gateway_endpoints`
 
 Key characteristics:
-- attached to **private route tables**
-- removes the need for NAT access to S3/DynamoDB
-- supports optional endpoint policies
 
-#### Optional endpoint policies
+* attached to **private route tables**
+* removes the need for NAT access to S3/DynamoDB
+* supports optional endpoint policies
+
+---
+
+## Interface VPC Endpoints (PrivateLink)
+
+Provides **private connectivity** from private subnets to AWS services using Interface Endpoints (ENIs in subnets).
+
+Implemented via:
+
+* `modules/vpc_interface_endpoints`
+
+Typical baseline for private compute environments:
+
+* `ssm`
+* `ec2messages`
+* `ssmmessages`
+* `logs`
+* `secretsmanager`
+
+Key characteristics:
+
+* placed into **private subnets**
+* controlled via **security groups**
+* supports optional endpoint policies
+* enables fully private SSM-based access (no bastion required)
+
+---
+
+## Optional endpoint policies
 
 This environment includes a **commented policy template**:
 
-- `endpoint_policies.tf`
+* `endpoint_policies.tf`
 
 It demonstrates:
-- broad (default-like) policies
-- restricted policies (recommended)
-- how to inject ARNs from other modules (e.g. storage, database)
+
+* broad (default-like) policies
+* restricted policies (recommended)
+* how to inject ARNs from other modules (e.g. storage, database)
 
 Policies are **disabled by default** and only applied if explicitly enabled.
 
@@ -114,23 +171,23 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 
 ## Files in this folder
 
-- `main.tf` — wires infrastructure modules together
-- `providers.tf` — AWS provider configuration
-- `versions.tf` — Terraform and provider constraints
-- `variables.tf` — environment-level inputs
-- `outputs.tf` — environment outputs
-- `dev.tfvars.example` — documented variable examples
-- `backend.tf.example` — backend configuration example
-- `endpoint_policies.tf` — commented endpoint policy templates
-
+* `main.tf` — wires infrastructure modules together
+* `providers.tf` — AWS provider configuration
+* `versions.tf` — Terraform and provider constraints
+* `variables.tf` — environment-level inputs
+* `outputs.tf` — environment outputs
+* `dev.tfvars.example` — documented variable examples
+* `backend.tf.example` — backend configuration example
+* `endpoint_policies.tf` — commented endpoint policy templates (gateways + interface)
+* `security_groups.tf` — commented security group templates (external/shared SG pattern)
 ---
 
 ## Design principles
 
-- Keep this environment **thin**
-- Prefer reusable logic inside modules
-- Treat this folder as a **composition layer**
-- Add new infrastructure by appending new module sections
+* Keep this environment **thin**
+* Prefer reusable logic inside modules
+* Treat this folder as a **composition layer**
+* Add new infrastructure by appending new module sections
 
 ---
 
@@ -145,6 +202,7 @@ terraform init
 terraform plan -var-file=dev.tfvars
 terraform apply -var-file=dev.tfvars
 ```
+---
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -167,6 +225,7 @@ No providers.
 | <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
 | <a name="module_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#module\_vpc\_gateway\_endpoints) | ../../modules/vpc_gateway_endpoints | n/a |
+| <a name="module_vpc_interface_endpoints"></a> [vpc\_interface\_endpoints](#module\_vpc\_interface\_endpoints) | ../../modules/vpc_interface_endpoints | n/a |
 
 ## Resources
 
@@ -203,7 +262,12 @@ No resources.
 |------|-------------|
 | <a name="output_azs"></a> [azs](#output\_azs) | Availability zones used by the network module. |
 | <a name="output_dynamodb_gateway_endpoint_id"></a> [dynamodb\_gateway\_endpoint\_id](#output\_dynamodb\_gateway\_endpoint\_id) | VPC Endpoint ID for DynamoDB gateway endpoint (null if disabled). |
+| <a name="output_enabled_interface_endpoint_services"></a> [enabled\_interface\_endpoint\_services](#output\_enabled\_interface\_endpoint\_services) | Set of enabled interface endpoint service keys. |
 | <a name="output_gateway_endpoints_ids"></a> [gateway\_endpoints\_ids](#output\_gateway\_endpoints\_ids) | Map of service name => VPC Endpoint ID for gateway endpoints (S3, DynamoDB). |
+| <a name="output_interface_endpoint_arns"></a> [interface\_endpoint\_arns](#output\_interface\_endpoint\_arns) | Map of service name => VPC Endpoint ARN for interface endpoints (PrivateLink). |
+| <a name="output_interface_endpoint_dns_entries"></a> [interface\_endpoint\_dns\_entries](#output\_interface\_endpoint\_dns\_entries) | Map of service name => list of DNS entries for interface endpoints (PrivateLink). |
+| <a name="output_interface_endpoint_ids"></a> [interface\_endpoint\_ids](#output\_interface\_endpoint\_ids) | Map of service name => VPC Endpoint ID for interface endpoints (PrivateLink). |
+| <a name="output_interface_endpoint_security_group_id"></a> [interface\_endpoint\_security\_group\_id](#output\_interface\_endpoint\_security\_group\_id) | Security group ID created by the module (null here because SG is managed externally). |
 | <a name="output_nat_eip_allocation_ids"></a> [nat\_eip\_allocation\_ids](#output\_nat\_eip\_allocation\_ids) | Map of NAT key => EIP allocation ID used by the NAT Gateway. |
 | <a name="output_nat_gateway_ids"></a> [nat\_gateway\_ids](#output\_nat\_gateway\_ids) | Map of NAT key => NAT Gateway ID. Keys are AZ names in per\_az mode or 'single' in single mode. |
 | <a name="output_nat_gateway_public_ips"></a> [nat\_gateway\_public\_ips](#output\_nat\_gateway\_public\_ips) | Map of NAT key => public IP address of the NAT Gateway. |

@@ -87,3 +87,99 @@
 #
 # If a service is omitted, AWS default policy is used.
 #
+
+############################################
+# Interface endpoint policy templates (OPTIONAL)
+############################################
+#
+# Notes:
+# - Interface endpoint policies are optional and service-specific.
+# - Many services either ignore policies or have limited support.
+# - Use policies only when you have a clear restriction goal.
+#
+# Nothing in this file is active until you:
+#   1) Uncomment the policy documents
+#   2) Pass endpoint_policy_json into the
+#      vpc_interface_endpoints module in main.tf
+#
+
+############################################
+# Example 1 — Broad (NOT recommended for prod)
+############################################
+#
+# Equivalent to “allow everything” via the endpoint.
+# Use ONLY for quick prototyping.
+#
+
+# data "aws_iam_policy_document" "vpce_secretsmanager_broad" {
+#   statement {
+#     effect    = "Allow"
+#     actions   = ["secretsmanager:*"]
+#     resources = ["*"]
+#   }
+# }
+
+############################################
+# Example 2 — Restricted Secrets Manager secret(s)
+############################################
+#
+# Recommended pattern.
+# In real projects, replace the ARN(s) with:
+#   module.secrets.secret_arn
+#   module.secrets.secret_arns
+#
+
+# data "aws_iam_policy_document" "vpce_secretsmanager_restricted" {
+#   statement {
+#     effect  = "Allow"
+#     actions = [
+#       "secretsmanager:GetSecretValue",
+#       "secretsmanager:DescribeSecret"
+#     ]
+#
+#     resources = [
+#       "arn:aws:secretsmanager:eu-central-1:123456789012:secret:example-*"
+#     ]
+#   }
+# }
+
+############################################
+# Example 3 — CloudWatch Logs (template)
+############################################
+#
+# CloudWatch Logs endpoint policies are less common in practice.
+# If you want to use one, start broad and then restrict carefully
+# to the log groups / actions you actually need.
+#
+# In real projects, replace the ARN(s) with:
+#   module.logging.log_group_arn
+#
+
+# data "aws_iam_policy_document" "vpce_logs_restricted" {
+#   statement {
+#     effect  = "Allow"
+#     actions = [
+#       "logs:CreateLogStream",
+#       "logs:PutLogEvents",
+#       "logs:DescribeLogStreams"
+#     ]
+#
+#     resources = [
+#       "arn:aws:logs:eu-central-1:123456789012:log-group:/aws/*:*"
+#     ]
+#   }
+# }
+
+############################################
+# How to enable interface endpoint policies
+############################################
+#
+# In envs/dev/main.tf (module "vpc_interface_endpoints") add:
+#
+# endpoint_policy_json = {
+#   secretsmanager = data.aws_iam_policy_document.vpce_secretsmanager_restricted.json
+#   logs           = data.aws_iam_policy_document.vpce_logs_restricted.json
+# }
+#
+# If a service is omitted, AWS default policy is used.
+#

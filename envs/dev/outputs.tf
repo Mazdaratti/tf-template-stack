@@ -92,3 +92,31 @@ output "dynamodb_gateway_endpoint_id" {
   value       = module.vpc_gateway_endpoints.dynamodb_endpoint_id
 }
 
+############################################
+# VPC Interface Endpoints (PrivateLink)
+############################################
+
+output "interface_endpoint_ids" {
+  description = "Map of service name => VPC Endpoint ID for interface endpoints (PrivateLink)."
+  value       = module.vpc_interface_endpoints.endpoint_ids
+}
+
+output "interface_endpoint_arns" {
+  description = "Map of service name => VPC Endpoint ARN for interface endpoints (PrivateLink)."
+  value       = module.vpc_interface_endpoints.endpoint_arns
+}
+
+output "interface_endpoint_dns_entries" {
+  description = "Map of service name => list of DNS entries for interface endpoints (PrivateLink)."
+  value       = module.vpc_interface_endpoints.dns_entries
+}
+
+output "enabled_interface_endpoint_services" {
+  description = "Set of enabled interface endpoint service keys."
+  value       = module.vpc_interface_endpoints.enabled_services
+}
+
+output "interface_endpoint_security_group_id" {
+  description = "Security group ID created by the module (null here because SG is managed externally)."
+  value       = module.vpc_interface_endpoints.security_group_id
+}
