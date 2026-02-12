@@ -189,7 +189,49 @@ All examples are designed to be:
 ---
 
 <!-- BEGIN_TF_DOCS -->
+## Requirements
 
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.31.0 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_kms_alias.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
+| [aws_kms_key.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_alias_prefix"></a> [alias\_prefix](#input\_alias\_prefix) | Optional prefix for KMS aliases. If null, defaults to '<project\_name>-<environment>'. | `string` | `null` | no |
+| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags to merge with enforced tags. | `map(string)` | `{}` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for tagging and default naming (e.g., dev, stage, prod). | `string` | n/a | yes |
+| <a name="input_keys"></a> [keys](#input\_keys) | Map of KMS keys to create.<br/><br/>Each key object supports:<br/>- description (optional)<br/>- enable\_key\_rotation (optional, default true)<br/>- deletion\_window\_in\_days (optional, default 30; valid range 7..30)<br/>- policy (optional JSON string; if null, module default policy is used)<br/>- is\_enabled (optional, default true)<br/>- multi\_region (optional, default false)<br/>- alias\_name (optional; full alias name like 'alias/my-key')<br/>- tags (optional; per-key tags merged with module tags) | <pre>map(object({<br/>    description             = optional(string)<br/>    enable_key_rotation     = optional(bool, true)<br/>    deletion_window_in_days = optional(number, 30)<br/>    policy                  = optional(string)<br/>    is_enabled              = optional(bool, true)<br/>    multi_region            = optional(bool, false)<br/>    alias_name              = optional(string)<br/>    tags                    = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for tagging and default naming. | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_alias_names"></a> [alias\_names](#output\_alias\_names) | Map of key name => KMS alias name. |
+| <a name="output_key_arns"></a> [key\_arns](#output\_key\_arns) | Map of key name => KMS key ARN. |
+| <a name="output_key_ids"></a> [key\_ids](#output\_key\_ids) | Map of key name => KMS key ID. |
+| <a name="output_keys"></a> [keys](#output\_keys) | Map of key name => object with key\_arn, key\_id, and alias\_name. |
 <!-- END_TF_DOCS -->
-
----
