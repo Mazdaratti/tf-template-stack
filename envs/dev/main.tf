@@ -134,3 +134,51 @@ module "vpc_interface_endpoints" {
   #   logs           = data.aws_iam_policy_document.vpce_logs_restricted.json
   # }
 }
+
+###################################
+# MODULE - KMS KEYS
+###################################
+
+module "kms_keys" {
+  source = "../../modules/kms_keys"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Optional:
+  # alias_prefix = "${var.project_name}-${var.environment}"
+
+  #***********************************
+  # Foundation baseline keys (dev)
+  #***********************************
+  
+  # Keep this generic and aligned with upcoming modules:
+  # - logs: for logging_baseline / vpc_flow_logs (CloudWatch Logs)
+  # - s3: for secure s3 bucket baseline
+  # - secretsmanager: common platform primitive
+  # - ssm: common platform primitive (SecureString)
+  
+
+  keys = {
+    logs = {
+      description = "KMS key for log encryption"
+    }
+
+    s3 = {
+      description = "KMS key for S3 bucket encryption"
+    }
+
+    secretsmanager = {
+      description = "KMS key for Secrets Manager"
+    }
+
+    ssm = {
+      description = "KMS key for SSM Parameter Store SecureString"
+    }
+  }
+
+  # Optional: custom key policies can be defined in envs/dev/kms_key_policies.tf
+  # and passed per key as `policy = data.aws_iam_policy_document.<name>.json`
+}

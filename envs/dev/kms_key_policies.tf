@@ -19,9 +19,9 @@
 #   (or a dedicated KMS admin role).
 #
 
-data "aws_caller_identity" "current" {}
+# data "aws_caller_identity" "current" {}
 
-data "aws_partition" "current" {}
+# data "aws_partition" "current" {}
 
 ############################################
 # Example 1 — Safe admin baseline (recommended)
