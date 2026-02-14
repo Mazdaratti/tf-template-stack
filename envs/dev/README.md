@@ -153,6 +153,33 @@ Key characteristics:
 
 ---
 
+## KMS Keys (encryption baseline)
+
+Creates foundational **KMS keys** used for encryption across the platform.
+
+Implemented via:
+
+* `modules/kms_keys`
+
+Current dev baseline keys:
+
+* `logs` — intended for CloudWatch Logs / VPC Flow Logs
+* `s3` — intended for S3 bucket encryption
+* `secretsmanager` — for Secrets Manager
+* `ssm` — for SSM Parameter Store (SecureString)
+
+Key characteristics:
+
+* one alias per key (auto-generated)
+* safe default key policy (prevents lockout)
+* optional custom key policies
+* consistent tagging
+
+This establishes a reusable encryption baseline for future modules
+(e.g. logging, storage, compute).
+
+---
+
 ## Optional endpoint policies
 
 This environment includes a **commented policy template**:
@@ -169,6 +196,22 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 
 ---
 
+## Optional KMS key policies
+
+This environment includes a **commented policy template**:
+
+* `kms_key_policies.tf`
+
+It demonstrates:
+
+* safe admin baseline policy (recommended)
+* delegated usage to IAM roles (template pattern)
+* how to pass custom policy JSON into the `kms_keys` module
+
+Policies are **disabled by default** and only applied if explicitly enabled.
+
+---
+
 ## Files in this folder
 
 * `main.tf` — wires infrastructure modules together
@@ -179,6 +222,7 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 * `dev.tfvars.example` — documented variable examples
 * `backend.tf.example` — backend configuration example
 * `endpoint_policies.tf` — commented endpoint policy templates (gateways + interface)
+* `kms_key_policies.tf` — commented KMS key policy templates
 * `security_groups.tf` — commented security group templates (external/shared SG pattern)
 ---
 
@@ -222,6 +266,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_kms_keys"></a> [kms\_keys](#module\_kms\_keys) | ../../modules/kms_keys | n/a |
 | <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
 | <a name="module_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#module\_vpc\_gateway\_endpoints) | ../../modules/vpc_gateway_endpoints | n/a |
@@ -268,6 +313,10 @@ No resources.
 | <a name="output_interface_endpoint_dns_entries"></a> [interface\_endpoint\_dns\_entries](#output\_interface\_endpoint\_dns\_entries) | Map of service name => list of DNS entries for interface endpoints (PrivateLink). |
 | <a name="output_interface_endpoint_ids"></a> [interface\_endpoint\_ids](#output\_interface\_endpoint\_ids) | Map of service name => VPC Endpoint ID for interface endpoints (PrivateLink). |
 | <a name="output_interface_endpoint_security_group_id"></a> [interface\_endpoint\_security\_group\_id](#output\_interface\_endpoint\_security\_group\_id) | Security group ID created by the module (null here because SG is managed externally). |
+| <a name="output_kms_alias_names"></a> [kms\_alias\_names](#output\_kms\_alias\_names) | Map of KMS key name => alias name. |
+| <a name="output_kms_key_arns"></a> [kms\_key\_arns](#output\_kms\_key\_arns) | Map of KMS key name => key ARN. |
+| <a name="output_kms_key_ids"></a> [kms\_key\_ids](#output\_kms\_key\_ids) | Map of KMS key name => key ID. |
+| <a name="output_kms_keys"></a> [kms\_keys](#output\_kms\_keys) | Map of KMS key name => object with key\_arn, key\_id, and alias\_name. |
 | <a name="output_nat_eip_allocation_ids"></a> [nat\_eip\_allocation\_ids](#output\_nat\_eip\_allocation\_ids) | Map of NAT key => EIP allocation ID used by the NAT Gateway. |
 | <a name="output_nat_gateway_ids"></a> [nat\_gateway\_ids](#output\_nat\_gateway\_ids) | Map of NAT key => NAT Gateway ID. Keys are AZ names in per\_az mode or 'single' in single mode. |
 | <a name="output_nat_gateway_public_ips"></a> [nat\_gateway\_public\_ips](#output\_nat\_gateway\_public\_ips) | Map of NAT key => public IP address of the NAT Gateway. |
