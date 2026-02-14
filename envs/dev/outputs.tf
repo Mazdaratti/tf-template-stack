@@ -120,3 +120,27 @@ output "interface_endpoint_security_group_id" {
   description = "Security group ID created by the module (null here because SG is managed externally)."
   value       = module.vpc_interface_endpoints.security_group_id
 }
+
+############################################
+# KMS (kms_keys module)
+############################################
+
+output "kms_key_arns" {
+  description = "Map of KMS key name => key ARN."
+  value       = module.kms_keys.key_arns
+}
+
+output "kms_key_ids" {
+  description = "Map of KMS key name => key ID."
+  value       = module.kms_keys.key_ids
+}
+
+output "kms_alias_names" {
+  description = "Map of KMS key name => alias name."
+  value       = module.kms_keys.alias_names
+}
+
+output "kms_keys" {
+  description = "Map of KMS key name => object with key_arn, key_id, and alias_name."
+  value       = module.kms_keys.keys
+}

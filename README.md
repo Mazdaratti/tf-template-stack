@@ -19,7 +19,11 @@ A modular Terraform configuration for deploying applications on AWS with environ
 
 - **network** — VPC + subnets + route tables (no NAT)
 - **nat_gateway** — NAT Gateway(s) + private outbound routes
+- **vpc_gateway_endpoints** — Gateway endpoints (S3, DynamoDB)
+- **vpc_interface_endpoints** — Interface endpoints (PrivateLink services)
+- **kms_keys** — Reusable KMS key creation with safe default policy
 - **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
+
 
 ## Recommended order
 
