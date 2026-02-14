@@ -153,13 +153,13 @@ module "kms_keys" {
   #***********************************
   # Foundation baseline keys (dev)
   #***********************************
-  
+
   # Keep this generic and aligned with upcoming modules:
   # - logs: for logging_baseline / vpc_flow_logs (CloudWatch Logs)
   # - s3: for secure s3 bucket baseline
   # - secretsmanager: common platform primitive
   # - ssm: common platform primitive (SecureString)
-  
+
 
   keys = {
     logs = {
