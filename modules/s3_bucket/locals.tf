@@ -20,9 +20,6 @@ locals {
   # If it is null, we intentionally omit kms_master_key_id and AWS will use the AWS-managed key for S3 (aws/s3).
   kms_key_arn = local.encryption_is_kms ? try(var.encryption.kms_key_arn, null) : null
 
-  # Lifecycle is optional. We only create the lifecycle configuration resource if at least one rule is provided.
-  lifecycle_enabled = length(var.lifecycle_rules) > 0
-
   # Access logging is optional.
   logging_enabled = var.access_logging.enabled
 
