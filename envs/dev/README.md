@@ -180,6 +180,65 @@ This establishes a reusable encryption baseline for future modules
 
 ---
 
+## S3 Buckets (storage baseline)
+
+Creates a secure storage baseline using reusable S3 bucket modules.
+
+Implemented via:
+
+* `modules/s3_bucket`
+
+This environment deploys two buckets:
+
+### `s3_bucket_logs`
+
+Centralized logs bucket intended for:
+
+* S3 Server Access Logs
+* future ALB access logs
+* future VPC Flow Logs / CloudTrail integration
+
+Characteristics:
+
+* SSE-KMS encryption using the dedicated `logs` KMS key
+* versioning enabled
+* lifecycle rules for cost control
+* restricted bucket policy allowing log delivery only from the app bucket (defined in s3_bucket_policies.tf)
+
+---
+
+### `s3_bucket_app`
+
+Example application storage bucket.
+
+Characteristics:
+
+* SSE-KMS encryption using the dedicated `s3` KMS key
+* versioning enabled
+* S3 Server Access Logging enabled
+  * logs delivered to `s3_bucket_logs`
+  * stored under prefix `app/`
+
+---
+
+### Why two buckets?
+
+Separating logs and application storage:
+
+* reduces blast radius between data domains
+* enables different lifecycle strategies
+* prepares the stack for future logging modules
+* follows real-world platform design patterns
+
+This establishes a durable storage baseline that can be reused by:
+
+* application workloads
+* CI/CD artifact storage
+* ALB access logs
+* future logging modules
+
+---
+
 ## Optional endpoint policies
 
 This environment includes a **commented policy template**:
@@ -219,11 +278,14 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 * `versions.tf` — Terraform and provider constraints
 * `variables.tf` — environment-level inputs
 * `outputs.tf` — environment outputs
+* `data.tf` — shared AWS data sources (account identity, future region/partition)
 * `dev.tfvars.example` — documented variable examples
 * `backend.tf.example` — backend configuration example
 * `endpoint_policies.tf` — commented endpoint policy templates (gateways + interface)
 * `kms_key_policies.tf` — commented KMS key policy templates
+* `s3_bucket_policies.tf` — active S3 bucket policy definitions (log delivery restrictions)
 * `security_groups.tf` — commented security group templates (external/shared SG pattern)
+
 ---
 
 ## Design principles
@@ -260,7 +322,9 @@ terraform apply -var-file=dev.tfvars
 
 ## Providers
 
-No providers.
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.32.1 |
 
 ## Modules
 
@@ -269,12 +333,17 @@ No providers.
 | <a name="module_kms_keys"></a> [kms\_keys](#module\_kms\_keys) | ../../modules/kms_keys | n/a |
 | <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
+| <a name="module_s3_bucket_app"></a> [s3\_bucket\_app](#module\_s3\_bucket\_app) | ../../modules/s3_bucket | n/a |
+| <a name="module_s3_bucket_logs"></a> [s3\_bucket\_logs](#module\_s3\_bucket\_logs) | ../../modules/s3_bucket | n/a |
 | <a name="module_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#module\_vpc\_gateway\_endpoints) | ../../modules/vpc_gateway_endpoints | n/a |
 | <a name="module_vpc_interface_endpoints"></a> [vpc\_interface\_endpoints](#module\_vpc\_interface\_endpoints) | ../../modules/vpc_interface_endpoints | n/a |
 
 ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.s3_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
 
@@ -328,6 +397,10 @@ No resources.
 | <a name="output_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#output\_public\_subnet\_cidrs) | A list of CIDRs of public subnets (empty if none) |
 | <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | A list of IDs of public subnets (empty if none) |
 | <a name="output_public_subnet_ids_by_az"></a> [public\_subnet\_ids\_by\_az](#output\_public\_subnet\_ids\_by\_az) | A map of AZ name =>public subnet ID (empty if none) |
+| <a name="output_s3_app_bucket_arn"></a> [s3\_app\_bucket\_arn](#output\_s3\_app\_bucket\_arn) | S3 bucket ARN for application data. |
+| <a name="output_s3_app_bucket_name"></a> [s3\_app\_bucket\_name](#output\_s3\_app\_bucket\_name) | S3 bucket name for application data (source bucket). |
 | <a name="output_s3_gateway_endpoint_id"></a> [s3\_gateway\_endpoint\_id](#output\_s3\_gateway\_endpoint\_id) | VPC Endpoint ID for S3 gateway endpoint (null if disabled). |
+| <a name="output_s3_logs_bucket_arn"></a> [s3\_logs\_bucket\_arn](#output\_s3\_logs\_bucket\_arn) | S3 bucket ARN for centralized logs. |
+| <a name="output_s3_logs_bucket_name"></a> [s3\_logs\_bucket\_name](#output\_s3\_logs\_bucket\_name) | S3 bucket name for centralized logs (destination for access logging). |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 <!-- END_TF_DOCS -->
