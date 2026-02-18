@@ -83,12 +83,18 @@ module "vpc_gateway_endpoints" {
     dynamodb = true
   }
 
-  # Optional: define endpoint policies using aws_iam_policy_document
-  # If a service is omitted, AWS default policy is used.
+  # Optional: endpoint policies
+  #
+  # - Examples live in envs/dev/endpoint_policies.tf.example
+  # - Active policies should be defined in envs/dev/endpoint_policies.tf
+  #
+  # If a service is omitted, AWS default endpoint policy is used.
+  #
   # endpoint_policy_json = {
   #   s3       = data.aws_iam_policy_document.vpce_s3_restricted.json
   #   dynamodb = data.aws_iam_policy_document.vpce_dynamodb_restricted.json
   # }
+
 }
 
 ############################################
@@ -111,11 +117,12 @@ module "vpc_interface_endpoints" {
   # Simple default for this template: module-managed SG
   create_security_group = true
 
-  # Real-world option (recommended in platforms): external/shared SG
+  # Real-world platform pattern: external/shared SG (recommended later)
   # - create_security_group = false
   # - security_group_ids    = [aws_security_group.vpce_shared.id]
   #
-  # security_group_ids = [aws_security_group.vpce_shared.id]
+  # Example SG + rule templates live in:
+  # - envs/dev/security_groups.tf.example
 
 
   # Endpoints baseline for private management access + common platform services.
@@ -127,12 +134,18 @@ module "vpc_interface_endpoints" {
     secretsmanager = { enabled = true }
   }
 
-  # Optional: define endpoint policies using aws_iam_policy_document
-  # If a service is omitted, AWS default policy is used.
+  # Optional: endpoint policies
+  #
+  # - Examples live in envs/dev/endpoint_policies.tf.example
+  # - Active policies should be defined in envs/dev/endpoint_policies.tf
+  #
+  # If a service is omitted, AWS default endpoint policy is used.
+  #
   # endpoint_policy_json = {
   #   secretsmanager = data.aws_iam_policy_document.vpce_secretsmanager_restricted.json
   #   logs           = data.aws_iam_policy_document.vpce_logs_restricted.json
   # }
+
 }
 
 ###################################
@@ -179,8 +192,12 @@ module "kms_keys" {
     }
   }
 
-  # Optional: custom key policies can be defined in envs/dev/kms_key_policies.tf
-  # and passed per key as `policy = data.aws_iam_policy_document.<name>.json`
+  # Optional: custom key policies
+  # - Examples live in envs/dev/kms_key_policies.tf.example
+  # - Active policies should be defined in envs/dev/kms_key_policies.tf
+  #
+  # Then pass per key as: policy = data.aws_iam_policy_document.<name>.json
+
 }
 
 ###################################
