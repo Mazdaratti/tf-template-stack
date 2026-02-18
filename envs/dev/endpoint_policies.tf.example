@@ -1,19 +1,34 @@
 ############################################
-# Gateway endpoint policy templates (OPTIONAL)
+# Endpoint policy templates (EXAMPLE)
 ############################################
 #
-# This file contains EXAMPLES ONLY.
-# Nothing in this file is active until you:
-#   1) Uncomment the policy documents
-#   2) Pass endpoint_policy_json into the
-#      vpc_gateway_endpoints module in main.tf
+# This file contains commented examples of gateway and interface
+# endpoint policies.
+#
+# These examples are NOT active.
+# Terraform does not load this file because it does not end with `.tf`.
+# To use one:
+#   1) Copy it into endpoint_policies.tf
+#   2) Reference it in module "vpc_gateway_endpoints"
+#      or module "vpc_interface_endpoints" in main.tf
+#
+# If a service is omitted from endpoint_policy_json,
+# AWS default endpoint policy is used for that service.
+#
+# Each example below explains:
+# - what it allows
+# - when it should be used
+# - what must be replaced with real ARNs
 #
 # Purpose:
 # - Show real-world policy patterns
 # - Keep dev environment secure by default
 # - Make policies easy to copy to other envs
 #
-
+############################################
+# Gateway endpoint policy templates (OPTIONAL)
+############################################
+#
 ############################################
 # Example 1 — Broad (NOT recommended for prod)
 ############################################
@@ -38,10 +53,9 @@
 ############################################
 #
 # Recommended pattern.
-# In real projects, replace the ARN with:
-#   module.storage.bucket_arn
+# In real projects, replace the ARN(s) with a real bucket ARN output, e.g.:
+#   module.<bucket_module>.bucket_arn
 #
-
 # data "aws_iam_policy_document" "vpce_s3_restricted" {
 #   statement {
 #     effect  = "Allow"
@@ -59,7 +73,7 @@
 ############################################
 #
 # Replace the ARN with:
-#   module.dynamodb.table_arn
+#   module.<dynamodb_module>.table_arn
 #
 
 # data "aws_iam_policy_document" "vpce_dynamodb_restricted" {
@@ -74,20 +88,20 @@
 # }
 
 ############################################
-# How to enable policies
+# How to enable gateway endpoint policies
 ############################################
 #
-# 1) Uncomment ONE policy per service above
-# 2) In envs/dev/main.tf add:
+# 1) Copy ONE example policy document from this file
+#    into envs/dev/endpoint_policies.tf (active file)
+# 2) In envs/dev/main.tf (module "vpc_gateway_endpoints") add:
 #
 # endpoint_policy_json = {
-#   s3       = data.aws_iam_policy_document.vpce_s3_restricted.json
-#   dynamodb = data.aws_iam_policy_document.vpce_dynamodb_restricted.json
+#    s3       = data.aws_iam_policy_document.vpce_s3_restricted.json
+#    dynamodb = data.aws_iam_policy_document.vpce_dynamodb_restricted.json
 # }
 #
 # If a service is omitted, AWS default policy is used.
 #
-
 ############################################
 # Interface endpoint policy templates (OPTIONAL)
 ############################################
@@ -97,12 +111,6 @@
 # - Many services either ignore policies or have limited support.
 # - Use policies only when you have a clear restriction goal.
 #
-# Nothing in this file is active until you:
-#   1) Uncomment the policy documents
-#   2) Pass endpoint_policy_json into the
-#      vpc_interface_endpoints module in main.tf
-#
-
 ############################################
 # Example 1 — Broad (NOT recommended for prod)
 ############################################
@@ -174,7 +182,9 @@
 # How to enable interface endpoint policies
 ############################################
 #
-# In envs/dev/main.tf (module "vpc_interface_endpoints") add:
+# 1) Copy ONE example policy document from this file
+#    into envs/dev/endpoint_policies.tf (active file).
+# 2) In envs/dev/main.tf (module "vpc_interface_endpoints") add:
 #
 # endpoint_policy_json = {
 #   secretsmanager = data.aws_iam_policy_document.vpce_secretsmanager_restricted.json
