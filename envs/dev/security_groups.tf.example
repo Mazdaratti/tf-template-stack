@@ -1,13 +1,18 @@
 ############################################
-# Security Group templates (optional)
+# Security Group templates (EXAMPLE)
+############################################
+#
+# This file contains commented security group examples.
+# It is NOT loaded by Terraform because it does not end with `.tf`.
 #
 # Real-world pattern:
 # - SGs are often owned centrally (platform/security module)
 # - Endpoint modules consume SG IDs
 #
-# This file is intentionally a TEMPLATE:
-# - Uncomment and adjust when you want external/shared SGs
+# How to use:
+# - Copy the resources you need into security_groups.tf (active file)
 # - Keep SG rules as separate resources (no inline rules)
+#
 ############################################
 
 # resource "aws_security_group" "vpce_shared" {
