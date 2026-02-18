@@ -1,0 +1,104 @@
+############################################
+# KMS key policy templates (EXAMPLE)
+############################################
+#
+# This file contains commented KMS key policy examples.
+# It is NOT loaded by Terraform because it does not end with `.tf`.
+#
+# To use one:
+#   1) Copy a policy document into kms_key_policies.tf (active file)
+#   2) Reference it from module "kms_keys" in main.tf via `policy = ...`
+#
+# Notes:
+# - KMS key policies are security-critical.
+# - Misconfiguration can lock you out of a key.
+# - Always keep an admin/root (or dedicated admin role) statement.
+#
+############################################
+# Example 1 — Safe admin baseline (recommended)
+############################################
+#
+# Keeps full control in the account (prevents lockout).
+# Suitable as the "admin statement" in any custom policy.
+#
+
+# data "aws_iam_policy_document" "kms_admin_baseline" {
+#   statement {
+#     sid    = "AllowAccountRootFullAccess"
+#     effect = "Allow"
+#
+#     principals {
+#       type        = "AWS"
+#       identifiers = [
+#         "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"
+#       ]
+#     }
+#
+#     actions   = ["kms:*"]
+#     resources = ["*"]
+#   }
+# }
+
+############################################
+# Example 2 — Admin baseline + delegate usage to role
+############################################
+#
+# Template showing a common pattern:
+# - Admin: account root has full access
+# - Usage: allow a specific IAM role to encrypt/decrypt
+#
+# In real projects, replace the role ARN with something like:
+#   module.iam.role_arn
+#
+
+# data "aws_iam_policy_document" "kms_delegate_usage_to_role" {
+#   statement {
+#     sid    = "AllowAccountRootFullAccess"
+#     effect = "Allow"
+#
+#     principals {
+#       type        = "AWS"
+#       identifiers = [
+#         "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"
+#       ]
+#     }
+#
+#     actions   = ["kms:*"]
+#     resources = ["*"]
+#   }
+#
+#   statement {
+#     sid    = "AllowKeyUsageForRole"
+#     effect = "Allow"
+#
+#     principals {
+#       type        = "AWS"
+#       identifiers = ["arn:aws:iam::123456789012:role/example-role"]
+#     }
+#
+#     actions = [
+#       "kms:Encrypt",
+#       "kms:Decrypt",
+#       "kms:GenerateDataKey",
+#       "kms:DescribeKey"
+#     ]
+#
+#     resources = ["*"]
+#   }
+# }
+
+############################################
+# How to enable a custom policy for a key
+############################################
+#
+# In envs/dev/main.tf (module "kms_keys") set:
+#
+# keys = {
+#   logs = {
+#     description = "KMS key for logs"
+#     policy      = data.aws_iam_policy_document.kms_delegate_usage_to_role.json
+#   }
+# }
+#
+# If policy is omitted, module default policy is used.
+#
