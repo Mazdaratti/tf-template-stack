@@ -144,3 +144,27 @@ output "kms_keys" {
   description = "Map of KMS key name => object with key_arn, key_id, and alias_name."
   value       = module.kms_keys.keys
 }
+
+############################################
+# S3 (s3_bucket module)
+############################################
+
+output "s3_logs_bucket_name" {
+  description = "S3 bucket name for centralized logs (destination for access logging)."
+  value       = module.s3_bucket_logs.bucket_name
+}
+
+output "s3_logs_bucket_arn" {
+  description = "S3 bucket ARN for centralized logs."
+  value       = module.s3_bucket_logs.bucket_arn
+}
+
+output "s3_app_bucket_name" {
+  description = "S3 bucket name for application data (source bucket)."
+  value       = module.s3_bucket_app.bucket_name
+}
+
+output "s3_app_bucket_arn" {
+  description = "S3 bucket ARN for application data."
+  value       = module.s3_bucket_app.bucket_arn
+}
