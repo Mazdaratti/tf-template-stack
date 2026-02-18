@@ -22,7 +22,9 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - **vpc_gateway_endpoints** — Gateway endpoints (S3, DynamoDB)
 - **vpc_interface_endpoints** — Interface endpoints (PrivateLink services)
 - **kms_keys** — Reusable KMS key creation with safe default policy
+- **s3_bucket** — Secure-by-default S3 bucket with encryption, lifecycle, logging support
 - **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
+
 
 
 ## Recommended order
