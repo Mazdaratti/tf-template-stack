@@ -182,3 +182,116 @@ module "kms_keys" {
   # Optional: custom key policies can be defined in envs/dev/kms_key_policies.tf
   # and passed per key as `policy = data.aws_iam_policy_document.<name>.json`
 }
+
+###################################
+# MODULE - S3 BUCKETS (LOGS + APP)
+#
+# We create two buckets using the same reusable s3_bucket module:
+#
+# - s3_bucket_logs:
+#   Central destination bucket for S3 Server Access Logs (and later other logging sources).
+#   Uses the dedicated KMS key: key_arns["logs"].
+#
+# - s3_bucket_app:
+#   Example application bucket.
+#   Uses the dedicated KMS key: key_arns["s3"].
+#   Sends its server access logs to s3_bucket_logs under prefix "app/".
+#
+# Why separate KMS keys?
+# - Clear separation of concerns: log data vs application data
+# - Reduced blast radius if key policy/permissions evolve later
+#
+# Naming:
+# S3 bucket names must be globally unique. We append the AWS account ID to
+# make names deterministic and unique per AWS account.
+###################################
+
+module "s3_bucket_logs" {
+  source = "../../modules/s3_bucket"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  bucket_name = "${var.project_name}-${var.environment}-logs-${data.aws_caller_identity.current.account_id}"
+
+  # If false (default in module), Terraform will refuse to destroy a non-empty bucket.
+  # In dev we set true for convenience; in stage/prod you typically keep this false.
+  force_destroy = true
+
+  # Encryption:
+  # - type = "KMS" enables SSE-KMS.
+  # - kms_key_arn selects the customer-managed KMS key created by kms_keys.
+  encryption = {
+    type        = "KMS"
+    kms_key_arn = module.kms_keys.key_arns["logs"]
+  }
+
+  # Versioning:
+  # - When enabled, S3 keeps older versions of objects (safer, but more storage).
+  versioning_enabled = true
+
+  # Bucket policy (optional):
+  # If omitted (module default), no additional bucket policy is attached
+  # beyond the module’s baseline TLS-only deny policy.
+  # Here we attach the env-defined policy that allows S3 access log delivery.
+  policy_json = data.aws_iam_policy_document.s3_access_logs_delivery.json
+
+  # Lifecycle rules (optional):
+  # If omitted (default), S3 will not expire objects automatically.
+  # Logs buckets usually have lifecycle rules to control cost.
+  lifecycle_rules = [
+    {
+      id              = "expire-logs"
+      enabled         = true
+      expiration_days = 90
+    },
+    {
+      id                                 = "expire-noncurrent"
+      enabled                            = true
+      noncurrent_version_expiration_days = 30
+    },
+    {
+      id                                     = "abort-multipart"
+      enabled                                = true
+      abort_incomplete_multipart_upload_days = 7
+    }
+  ]
+}
+
+module "s3_bucket_app" {
+  source = "../../modules/s3_bucket"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  bucket_name = "${var.project_name}-${var.environment}-app-${data.aws_caller_identity.current.account_id}"
+
+  # If false (default in module), Terraform will refuse to destroy a non-empty bucket.
+  # In dev we set true for convenience; in stage/prod you typically keep this false.
+  force_destroy = true
+
+  # Encryption:
+  # - type = "KMS" enables SSE-KMS.
+  # - kms_key_arn selects the customer-managed KMS key created by kms_keys.
+  encryption = {
+    type        = "KMS"
+    kms_key_arn = module.kms_keys.key_arns["s3"]
+  }
+
+  # Versioning:
+  # - When enabled, S3 keeps older versions of objects (safer, but more storage).
+  versioning_enabled = true
+
+  # Server access logging (optional):
+  # If access_logging.enabled = false (module default), no logs are delivered.
+  # When enabled, S3 writes access logs for this bucket into the target bucket/prefix.
+  access_logging = {
+    enabled       = true
+    target_bucket = module.s3_bucket_logs.bucket_name
+    target_prefix = "app/"
+  }
+}
