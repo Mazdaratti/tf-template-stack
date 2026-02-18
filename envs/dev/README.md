@@ -243,13 +243,15 @@ This establishes a durable storage baseline that can be reused by:
 
 This environment includes a **commented policy template**:
 
-* `endpoint_policies.tf`
+* `endpoint_policies.tf.example`
 
 It demonstrates:
 
 * broad (default-like) policies
 * restricted policies (recommended)
 * how to inject ARNs from other modules (e.g. storage, database)
+
+Active endpoint policies must be defined in `endpoint_policies.tf`.
 
 Policies are **disabled by default** and only applied if explicitly enabled.
 
@@ -259,13 +261,15 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 
 This environment includes a **commented policy template**:
 
-* `kms_key_policies.tf`
+* `kms_key_policies.tf.example`
 
 It demonstrates:
 
 * safe admin baseline policy (recommended)
 * delegated usage to IAM roles (template pattern)
 * how to pass custom policy JSON into the `kms_keys` module
+
+Active key policies must be defined in `kms_key_policies.tf`.
 
 Policies are **disabled by default** and only applied if explicitly enabled.
 
@@ -281,10 +285,14 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 * `data.tf` — shared AWS data sources (account identity, future region/partition)
 * `dev.tfvars.example` — documented variable examples
 * `backend.tf.example` — backend configuration example
-* `endpoint_policies.tf` — commented endpoint policy templates (gateways + interface)
-* `kms_key_policies.tf` — commented KMS key policy templates
+* `endpoint_policies.tf` — active VPC endpoint policy definitions (if used)
+* `endpoint_policies.tf.example` — endpoint policy templates (gateway + interface)
+* `kms_key_policies.tf` — active KMS key policy definitions (if used)
+* `kms_key_policies.tf.example` — KMS key policy templates
+* `security_groups.tf` — active security group definitions (if used)
+* `security_groups.tf.example` — security group templates (external/shared SG pattern)
 * `s3_bucket_policies.tf` — active S3 bucket policy definitions (log delivery restrictions)
-* `security_groups.tf` — commented security group templates (external/shared SG pattern)
+
 
 ---
 

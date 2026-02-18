@@ -1,57 +1,17 @@
 ############################################
-# Security Group templates (optional)
-#
-# Real-world pattern:
-# - SGs are often owned centrally (platform/security module)
-# - Endpoint modules consume SG IDs
-#
-# This file is intentionally a TEMPLATE:
-# - Uncomment and adjust when you want external/shared SGs
-# - Keep SG rules as separate resources (no inline rules)
+# Security groups (ACTIVE)
 ############################################
-
-# resource "aws_security_group" "vpce_shared" {
-#   name        = "${var.project_name}-${var.environment}-endpoint-sg"
-#   description = "Shared SG for interface endpoints (external to module)"
-#   vpc_id      = module.network.vpc_id
 #
-#   tags = merge(var.common_tags, {
-#     Project     = var.project_name
-#     Environment = var.environment
-#     ManagedBy   = "Terraform"
-#     Name        = "${var.project_name}-${var.environment}-endpoint-sg"
-#   })
-# }
-
-# Baseline: allow HTTPS to endpoints from within the VPC CIDR
-# resource "aws_vpc_security_group_ingress_rule" "vpce_https_from_vpc" {
-#   security_group_id = aws_security_group.vpce_shared.id
+# This file is loaded by Terraform (because it ends with `.tf`).
 #
-#   ip_protocol = "tcp"
-#   from_port   = 443
-#   to_port     = 443
+# Add ACTIVE security groups here only if you decide to manage SGs in this
+# environment layer.
 #
-#   cidr_ipv4   = var.vpc_cidr
-#   description = "Allow HTTPS to interface endpoints from within the VPC"
-# }
-
-# Optional alternative: allow HTTPS only from a compute-tier SG (more restrictive)
-# resource "aws_vpc_security_group_ingress_rule" "vpce_https_from_compute_sg" {
-#   security_group_id = aws_security_group.vpce_shared.id
+# Repository guidance:
+# - Prefer reusable SG logic in modules when it becomes shared across envs.
+# - Keep rules as separate resources (no inline rules in aws_security_group).
 #
-#   ip_protocol = "tcp"
-#   from_port   = 443
-#   to_port     = 443
+# Examples and templates live in:
+# - security_groups.tf.example
 #
-#   referenced_security_group_id = aws_security_group.compute.id
-#   description                  = "Allow HTTPS to interface endpoints from compute SG"
-# }
-
-# Egress is typically required for endpoint ENIs
-# resource "aws_vpc_security_group_egress_rule" "vpce_all_egress" {
-#   security_group_id = aws_security_group.vpce_shared.id
-#
-#   ip_protocol = "-1"
-#   cidr_ipv4   = "0.0.0.0/0"
-#   description = "Allow all outbound traffic from interface endpoints"
-# }
+############################################

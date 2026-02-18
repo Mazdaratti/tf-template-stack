@@ -1,0 +1,195 @@
+############################################
+# Endpoint policy templates (EXAMPLE)
+############################################
+#
+# This file contains commented examples of gateway and interface
+# endpoint policies.
+#
+# These examples are NOT active.
+# Terraform does not load this file because it does not end with `.tf`.
+# To use one:
+#   1) Copy it into endpoint_policies.tf
+#   2) Reference it in module "vpc_gateway_endpoints"
+#      or module "vpc_interface_endpoints" in main.tf
+#
+# If a service is omitted from endpoint_policy_json,
+# AWS default endpoint policy is used for that service.
+#
+# Each example below explains:
+# - what it allows
+# - when it should be used
+# - what must be replaced with real ARNs
+#
+# Purpose:
+# - Show real-world policy patterns
+# - Keep dev environment secure by default
+# - Make policies easy to copy to other envs
+#
+############################################
+# Gateway endpoint policy templates (OPTIONAL)
+############################################
+#
+############################################
+# Example 1 — Broad (NOT recommended for prod)
+############################################
+#
+# Allows full access to S3/DynamoDB via the
+# gateway endpoint. This is equivalent to
+# the AWS default endpoint policy.
+#
+# Use ONLY for quick prototyping.
+#
+
+# data "aws_iam_policy_document" "vpce_s3_broad" {
+#   statement {
+#     effect  = "Allow"
+#     actions = ["s3:*"]
+#     resources = ["*"]
+#   }
+# }
+
+############################################
+# Example 2 — Restricted to specific S3 bucket
+############################################
+#
+# Recommended pattern.
+# In real projects, replace the ARN(s) with a real bucket ARN output, e.g.:
+#   module.<bucket_module>.bucket_arn
+#
+# data "aws_iam_policy_document" "vpce_s3_restricted" {
+#   statement {
+#     effect  = "Allow"
+#     actions = ["s3:*"]
+#
+#     resources = [
+#       "arn:aws:s3:::example-bucket",
+#       "arn:aws:s3:::example-bucket/*"
+#     ]
+#   }
+# }
+
+############################################
+# Example 3 — Restricted DynamoDB table
+############################################
+#
+# Replace the ARN with:
+#   module.<dynamodb_module>.table_arn
+#
+
+# data "aws_iam_policy_document" "vpce_dynamodb_restricted" {
+#   statement {
+#     effect  = "Allow"
+#     actions = ["dynamodb:*"]
+#
+#     resources = [
+#       "arn:aws:dynamodb:eu-central-1:123456789012:table/example-table"
+#     ]
+#   }
+# }
+
+############################################
+# How to enable gateway endpoint policies
+############################################
+#
+# 1) Copy ONE example policy document from this file
+#    into envs/dev/endpoint_policies.tf (active file)
+# 2) In envs/dev/main.tf (module "vpc_gateway_endpoints") add:
+#
+# endpoint_policy_json = {
+#    s3       = data.aws_iam_policy_document.vpce_s3_restricted.json
+#    dynamodb = data.aws_iam_policy_document.vpce_dynamodb_restricted.json
+# }
+#
+# If a service is omitted, AWS default policy is used.
+#
+############################################
+# Interface endpoint policy templates (OPTIONAL)
+############################################
+#
+# Notes:
+# - Interface endpoint policies are optional and service-specific.
+# - Many services either ignore policies or have limited support.
+# - Use policies only when you have a clear restriction goal.
+#
+############################################
+# Example 1 — Broad (NOT recommended for prod)
+############################################
+#
+# Equivalent to “allow everything” via the endpoint.
+# Use ONLY for quick prototyping.
+#
+
+# data "aws_iam_policy_document" "vpce_secretsmanager_broad" {
+#   statement {
+#     effect    = "Allow"
+#     actions   = ["secretsmanager:*"]
+#     resources = ["*"]
+#   }
+# }
+
+############################################
+# Example 2 — Restricted Secrets Manager secret(s)
+############################################
+#
+# Recommended pattern.
+# In real projects, replace the ARN(s) with:
+#   module.secrets.secret_arn
+#   module.secrets.secret_arns
+#
+
+# data "aws_iam_policy_document" "vpce_secretsmanager_restricted" {
+#   statement {
+#     effect  = "Allow"
+#     actions = [
+#       "secretsmanager:GetSecretValue",
+#       "secretsmanager:DescribeSecret"
+#     ]
+#
+#     resources = [
+#       "arn:aws:secretsmanager:eu-central-1:123456789012:secret:example-*"
+#     ]
+#   }
+# }
+
+############################################
+# Example 3 — CloudWatch Logs (template)
+############################################
+#
+# CloudWatch Logs endpoint policies are less common in practice.
+# If you want to use one, start broad and then restrict carefully
+# to the log groups / actions you actually need.
+#
+# In real projects, replace the ARN(s) with:
+#   module.logging.log_group_arn
+#
+
+# data "aws_iam_policy_document" "vpce_logs_restricted" {
+#   statement {
+#     effect  = "Allow"
+#     actions = [
+#       "logs:CreateLogStream",
+#       "logs:PutLogEvents",
+#       "logs:DescribeLogStreams"
+#     ]
+#
+#     resources = [
+#       "arn:aws:logs:eu-central-1:123456789012:log-group:/aws/*:*"
+#     ]
+#   }
+# }
+
+############################################
+# How to enable interface endpoint policies
+############################################
+#
+# 1) Copy ONE example policy document from this file
+#    into envs/dev/endpoint_policies.tf (active file).
+# 2) In envs/dev/main.tf (module "vpc_interface_endpoints") add:
+#
+# endpoint_policy_json = {
+#   secretsmanager = data.aws_iam_policy_document.vpce_secretsmanager_restricted.json
+#   logs           = data.aws_iam_policy_document.vpce_logs_restricted.json
+# }
+#
+# If a service is omitted, AWS default policy is used.
+#
