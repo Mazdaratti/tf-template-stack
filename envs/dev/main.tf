@@ -232,6 +232,12 @@ module "s3_bucket_logs" {
   # - When enabled, S3 keeps older versions of objects (safer, but more storage).
   versioning_enabled = true
 
+  # Bucket policy (optional):
+  # If omitted (module default), no additional bucket policy is attached
+  # beyond the module’s baseline TLS-only deny policy.
+  # Here we attach the env-defined policy that allows S3 access log delivery.
+  policy_json = data.aws_iam_policy_document.s3_access_logs_delivery.json
+
   # Lifecycle rules (optional):
   # If omitted (default), S3 will not expire objects automatically.
   # Logs buckets usually have lifecycle rules to control cost.
