@@ -15,3 +15,33 @@
 # - endpoint_policies.tf.example
 #
 ############################################
+# Gateway endpoint policies (ACTIVE)
+############################################
+#
+# S3 gateway endpoint policy restricted to the buckets created in this env.
+#
+# Why:
+# - Endpoint policies apply at the VPC endpoint and limit what traffic can reach S3.
+# - This policy keeps S3 access possible, but only for the intended buckets.
+#
+# Default behavior (if not set):
+# - AWS applies the default endpoint policy (effectively broad access).
+############################################
+
+data "aws_iam_policy_document" "vpce_s3_restricted_to_env_buckets" {
+  statement {
+    sid    = "AllowS3OnlyToEnvBuckets"
+    effect = "Allow"
+
+    # Minimal-risk approach: allow all S3 actions, but only for selected buckets.
+    actions = ["s3:*"]
+
+    resources = [
+      module.s3_bucket_logs.bucket_arn,
+      "${module.s3_bucket_logs.bucket_arn}/*",
+      module.s3_bucket_app.bucket_arn,
+      "${module.s3_bucket_app.bucket_arn}/*",
+    ]
+  }
+}
+
