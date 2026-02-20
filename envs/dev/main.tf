@@ -83,17 +83,15 @@ module "vpc_gateway_endpoints" {
     dynamodb = true
   }
 
-  # Optional: endpoint policies
+  # Endpoint policies (optional):
+  # If omitted for a service, AWS default endpoint policy is used.
   #
-  # - Examples live in envs/dev/endpoint_policies.tf.example
-  # - Active policies should be defined in envs/dev/endpoint_policies.tf
-  #
-  # If a service is omitted, AWS default endpoint policy is used.
-  #
-  # endpoint_policy_json = {
-  #   s3       = data.aws_iam_policy_document.vpce_s3_restricted.json
-  #   dynamodb = data.aws_iam_policy_document.vpce_dynamodb_restricted.json
-  # }
+  # Here we restrict S3 access through the gateway endpoint to ONLY the
+  # environment buckets (logs + app). This prevents access to other buckets
+  # via this endpoint while keeping S3 functionality intact.
+  endpoint_policy_json = {
+    s3 = data.aws_iam_policy_document.vpce_s3_restricted_to_env_buckets.json
+  }
 
 }
 
