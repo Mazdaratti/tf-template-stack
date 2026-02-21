@@ -23,5 +23,5 @@ resource "aws_cloudwatch_log_group" "this" {
   # - otherwise module-level default
   kms_key_id = coalesce(try(each.value.kms_key_arn, null), var.kms_key_arn)
 
-  tags = local.enforced_tags
+  tags = local.merged_tags
 }

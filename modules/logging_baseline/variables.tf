@@ -7,7 +7,7 @@ variable "project_name" {
   type        = string
 
   validation {
-    condition     = length(trim(var.project_name)) > 0
+    condition     = length(trimspace(var.project_name)) > 0
     error_message = "project_name must not be empty."
   }
 }
@@ -17,7 +17,7 @@ variable "environment" {
   type        = string
 
   validation {
-    condition     = length(trim(var.environment)) > 0
+    condition     = length(trimspace(var.environment)) > 0
     error_message = "environment must not be empty."
   }
 }
@@ -47,7 +47,7 @@ variable "log_group_name_prefix" {
   type        = string
 
   validation {
-    condition     = length(trim(var.log_group_name_prefix)) > 0
+    condition     = length(trimspace(var.log_group_name_prefix)) > 0
     error_message = "log_group_name_prefix must not be empty."
   }
 }
@@ -118,7 +118,7 @@ variable "log_groups" {
 
   validation {
     condition = alltrue([
-      for _, v in var.log_groups : length(trim(v.name_suffix)) > 0
+      for _, v in var.log_groups : length(trimspace(v.name_suffix)) > 0
     ])
     error_message = "Each log group must have a non-empty name_suffix."
   }

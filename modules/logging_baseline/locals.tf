@@ -7,7 +7,7 @@ locals {
   ##########################################
   # Naming normalization
   ##########################################
-#
+  #
   # We trim a trailing "/" so callers can pass either:
   #   "/project/env"
   # or
