@@ -1,10 +1,11 @@
 ############################################
-# Example: Basic Usage
+# Example: basic_usage
 #
-# This example demonstrates how to:
-# - Create multiple shared CloudWatch Log Groups
-# - Use default retention (30 days)
-# - Use naming prefix based on project/environment
+# This example is self-contained and runnable.
+# It demonstrates:
+# - Creating a controlled set of shared CloudWatch Log Groups
+# - Standardized naming via log_group_name_prefix
+# - Default retention with per-log-group overrides
 #
 # No KMS encryption is configured in this example.
 ############################################
