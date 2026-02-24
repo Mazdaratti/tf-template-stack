@@ -166,8 +166,8 @@ module "kms_keys" {
   #***********************************
 
   # Keep this generic and aligned with upcoming modules:
-  # - logs: for logging_baseline / vpc_flow_logs (CloudWatch Logs)
   # - s3: for secure s3 bucket baseline
+  # - logs: for logging_baseline / vpc_flow_logs (CloudWatch Logs)
   # - secretsmanager: common platform primitive
   # - ssm: common platform primitive (SecureString)
 
@@ -308,5 +308,46 @@ module "s3_bucket_app" {
     enabled       = true
     target_bucket = module.s3_bucket_logs.bucket_name
     target_prefix = "app/"
+  }
+}
+
+###################################
+# MODULE - LOGGING BASELINE
+#
+# Shared CloudWatch Log Groups used as platform primitives.
+#
+# For now we create only one log group:
+# - vpc_flow_logs: destination for the upcoming vpc_flow_logs module.
+#
+# Retention:
+# - dev: 30 days (keep low for cost)
+# - prod: consider 90+ days
+#
+# Encryption:
+# - uses the dedicated "logs" KMS key created by kms_keys module
+###################################
+
+module "logging_baseline" {
+  source = "../../modules/logging_baseline"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Naming:
+  # /<project>/<environment>/<suffix>
+  log_group_name_prefix = "/${var.project_name}/${var.environment}"
+
+  # Default retention (dev baseline)
+  retention_in_days = 30
+
+  # Encrypt CloudWatch Logs using the dedicated logs KMS key
+  kms_key_arn = module.kms_keys.keys["logs"].key_arn
+
+  log_groups = {
+    vpc_flow_logs = {
+      name_suffix = "vpc-flow-logs"
+    }
   }
 }

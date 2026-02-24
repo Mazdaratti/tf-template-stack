@@ -239,6 +239,64 @@ This establishes a durable storage baseline that can be reused by:
 
 ---
 
+Excellent. This README is structured well and consistent.
+
+We now need to add **one new section** in the correct architectural position.
+
+The correct placement is:
+
+After:
+
+> ## KMS Keys (encryption baseline)
+
+And before:
+
+> ## S3 Buckets (storage baseline)
+
+Because:
+
+* logging_baseline depends on kms_keys
+* storage may later depend on logging
+* It matches your module ordering in `main.tf`
+
+---
+
+## Logging baseline (CloudWatch Log Groups)
+
+Creates shared CloudWatch Log Groups used as platform logging primitives.
+
+Implemented via:
+
+* `modules/logging_baseline`
+
+Current dev baseline:
+
+* `vpc_flow_logs` — shared log group intended for the upcoming `vpc_flow_logs` module
+
+Characteristics:
+
+* naming pattern:
+```
+
+/<project>/<environment>/vpc-flow-logs
+
+```
+* 30-day retention in dev
+* production environments should typically use 90+ days
+* encrypted using the dedicated `logs` KMS key created by `kms_keys`
+* consistent tagging (`Project`, `Environment`, `ManagedBy`, `common_tags`)
+
+Why this exists:
+
+* separates log group creation from flow log configuration
+* enables consistent retention and encryption standards
+* keeps the environment thin
+* prepares the stack for the next module: `vpc_flow_logs`
+
+This module establishes the logging primitives that other infrastructure components will consume.
+
+---
+
 ## Optional endpoint policies
 
 This environment includes a **commented policy template**:
@@ -332,13 +390,14 @@ terraform apply -var-file=dev.tfvars
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.32.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.33.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_kms_keys"></a> [kms\_keys](#module\_kms\_keys) | ../../modules/kms_keys | n/a |
+| <a name="module_logging_baseline"></a> [logging\_baseline](#module\_logging\_baseline) | ../../modules/logging_baseline | n/a |
 | <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
 | <a name="module_s3_bucket_app"></a> [s3\_bucket\_app](#module\_s3\_bucket\_app) | ../../modules/s3_bucket | n/a |
@@ -352,6 +411,7 @@ terraform apply -var-file=dev.tfvars
 |------|------|
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.s3_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.vpce_s3_restricted_to_env_buckets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
 
@@ -394,6 +454,7 @@ terraform apply -var-file=dev.tfvars
 | <a name="output_kms_key_arns"></a> [kms\_key\_arns](#output\_kms\_key\_arns) | Map of KMS key name => key ARN. |
 | <a name="output_kms_key_ids"></a> [kms\_key\_ids](#output\_kms\_key\_ids) | Map of KMS key name => key ID. |
 | <a name="output_kms_keys"></a> [kms\_keys](#output\_kms\_keys) | Map of KMS key name => object with key\_arn, key\_id, and alias\_name. |
+| <a name="output_logging_baseline_log_group_arns"></a> [logging\_baseline\_log\_group\_arns](#output\_logging\_baseline\_log\_group\_arns) | Map of log group key => CloudWatch Log Group ARN created by logging\_baseline. |
 | <a name="output_nat_eip_allocation_ids"></a> [nat\_eip\_allocation\_ids](#output\_nat\_eip\_allocation\_ids) | Map of NAT key => EIP allocation ID used by the NAT Gateway. |
 | <a name="output_nat_gateway_ids"></a> [nat\_gateway\_ids](#output\_nat\_gateway\_ids) | Map of NAT key => NAT Gateway ID. Keys are AZ names in per\_az mode or 'single' in single mode. |
 | <a name="output_nat_gateway_public_ips"></a> [nat\_gateway\_public\_ips](#output\_nat\_gateway\_public\_ips) | Map of NAT key => public IP address of the NAT Gateway. |
@@ -410,5 +471,6 @@ terraform apply -var-file=dev.tfvars
 | <a name="output_s3_gateway_endpoint_id"></a> [s3\_gateway\_endpoint\_id](#output\_s3\_gateway\_endpoint\_id) | VPC Endpoint ID for S3 gateway endpoint (null if disabled). |
 | <a name="output_s3_logs_bucket_arn"></a> [s3\_logs\_bucket\_arn](#output\_s3\_logs\_bucket\_arn) | S3 bucket ARN for centralized logs. |
 | <a name="output_s3_logs_bucket_name"></a> [s3\_logs\_bucket\_name](#output\_s3\_logs\_bucket\_name) | S3 bucket name for centralized logs (destination for access logging). |
+| <a name="output_vpc_flow_logs_log_group_arn"></a> [vpc\_flow\_logs\_log\_group\_arn](#output\_vpc\_flow\_logs\_log\_group\_arn) | CloudWatch Log Group ARN for VPC Flow Logs (shared log group created by logging\_baseline). |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 <!-- END_TF_DOCS -->
