@@ -23,14 +23,25 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - **vpc_interface_endpoints** — Interface endpoints (PrivateLink services)
 - **kms_keys** — Reusable KMS key creation with safe default policy
 - **s3_bucket** — Secure-by-default S3 bucket with encryption, lifecycle, logging support
+- **logging_baseline** — Shared CloudWatch Log Groups with standardized naming, retention, and optional KMS encryption
 - **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
 
 
 
 ## Recommended order
 
-1) `bootstrap/dev` (remote backend + OIDC)
-2) `envs/dev` (network, nat, compute modules...)
+1) `bootstrap/dev`  
+   - Creates remote backend (S3 + DynamoDB)
+   - Sets up GitHub OIDC / IAM (if used)
+
+2) `envs/dev`  
+   - Network baseline  
+   - NAT Gateway  
+   - VPC Endpoints  
+   - KMS keys (encryption baseline)  
+   - Logging baseline (CloudWatch Log Groups)  
+   - Storage baseline (S3 buckets)  
+   - Future modules (e.g. vpc_flow_logs, compute)
 
 ## Environments
 
