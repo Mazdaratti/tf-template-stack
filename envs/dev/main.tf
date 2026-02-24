@@ -166,8 +166,8 @@ module "kms_keys" {
   #***********************************
 
   # Keep this generic and aligned with upcoming modules:
-  # - logs: for logging_baseline / vpc_flow_logs (CloudWatch Logs)
   # - s3: for secure s3 bucket baseline
+  # - logs: for logging_baseline / vpc_flow_logs (CloudWatch Logs)
   # - secretsmanager: common platform primitive
   # - ssm: common platform primitive (SecureString)
 
