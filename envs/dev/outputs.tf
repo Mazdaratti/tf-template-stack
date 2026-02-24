@@ -168,3 +168,17 @@ output "s3_app_bucket_arn" {
   description = "S3 bucket ARN for application data."
   value       = module.s3_bucket_app.bucket_arn
 }
+
+############################################
+# Logging baseline (CloudWatch Log Groups)
+############################################
+
+output "logging_baseline_log_group_arns" {
+  description = "Map of log group key => CloudWatch Log Group ARN created by logging_baseline."
+  value       = module.logging_baseline.log_group_arns
+}
+
+output "vpc_flow_logs_log_group_arn" {
+  description = "CloudWatch Log Group ARN for VPC Flow Logs (shared log group created by logging_baseline)."
+  value       = module.logging_baseline.log_group_arns["vpc_flow_logs"]
+}
