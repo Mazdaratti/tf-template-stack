@@ -66,7 +66,7 @@ variable "traffic_type" {
 variable "max_aggregation_interval" {
   description = "Maximum aggregation interval in seconds. Valid values: 60 or 600. If null, AWS default is used."
   type        = number
-  default     = null
+  default     = 600
 
   validation {
     condition     = var.max_aggregation_interval == null || contains([60, 600], var.max_aggregation_interval)
