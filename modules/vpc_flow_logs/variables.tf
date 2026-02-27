@@ -69,7 +69,7 @@ variable "max_aggregation_interval" {
   default     = 600
 
   validation {
-    condition     = contains([60, 600], var.vpc_flow_logs_max_aggregation_interval)
+    condition     = contains([60, 600], var.max_aggregation_interval)
     error_message = "vpc_flow_logs_max_aggregation_interval must be one of: 60, 600."
   }
 }
