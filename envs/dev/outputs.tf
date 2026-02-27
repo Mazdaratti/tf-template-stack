@@ -182,3 +182,17 @@ output "vpc_flow_logs_log_group_arn" {
   description = "CloudWatch Log Group ARN for VPC Flow Logs (shared log group created by logging_baseline)."
   value       = module.logging_baseline.log_group_arns["vpc_flow_logs"]
 }
+
+############################################
+# VPC Flow Logs
+############################################
+
+output "vpc_flow_log_id" {
+  description = "ID of the VPC Flow Log created for the dev VPC."
+  value       = module.vpc_flow_logs.flow_log_id
+}
+
+output "vpc_flow_logs_iam_role_arn" {
+  description = "ARN of the IAM role used by VPC Flow Logs."
+  value       = module.vpc_flow_logs.iam_role_arn
+}
