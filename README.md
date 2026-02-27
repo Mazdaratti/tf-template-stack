@@ -24,9 +24,8 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - **kms_keys** — Reusable KMS key creation with safe default policy
 - **s3_bucket** — Secure-by-default S3 bucket with encryption, lifecycle, logging support
 - **logging_baseline** — Shared CloudWatch Log Groups with standardized naming, retention, and optional KMS encryption
+- **vpc_flow_logs** — Enables VPC Flow Logs delivery to a shared CloudWatch Log Group
 - **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
-
-
 
 ## Recommended order
 
@@ -41,7 +40,8 @@ A modular Terraform configuration for deploying applications on AWS with environ
    - KMS keys (encryption baseline)  
    - Logging baseline (CloudWatch Log Groups)  
    - Storage baseline (S3 buckets)  
-   - Future modules (e.g. vpc_flow_logs, compute)
+   - VPC Flow Logs (network observability baseline)
+   - Future modules (e.g. compute)
 
 ## Environments
 
