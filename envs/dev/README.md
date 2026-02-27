@@ -239,28 +239,6 @@ This establishes a durable storage baseline that can be reused by:
 
 ---
 
-Excellent. This README is structured well and consistent.
-
-We now need to add **one new section** in the correct architectural position.
-
-The correct placement is:
-
-After:
-
-> ## KMS Keys (encryption baseline)
-
-And before:
-
-> ## S3 Buckets (storage baseline)
-
-Because:
-
-* logging_baseline depends on kms_keys
-* storage may later depend on logging
-* It matches your module ordering in `main.tf`
-
----
-
 ## Logging baseline (CloudWatch Log Groups)
 
 Creates shared CloudWatch Log Groups used as platform logging primitives.
@@ -294,6 +272,56 @@ Why this exists:
 * prepares the stack for the next module: `vpc_flow_logs`
 
 This module establishes the logging primitives that other infrastructure components will consume.
+
+---
+
+## VPC Flow Logs (network observability baseline)
+
+Enables **VPC Flow Logs** for the dev VPC and publishes records to the shared CloudWatch Log Group created by the logging baseline.
+
+Implemented via:
+
+* `modules/vpc_flow_logs`
+
+Current dev baseline behavior:
+
+* source VPC: `module.network.vpc_id`
+* destination log group: `module.logging_baseline.log_group_arns["vpc_flow_logs"]`
+* traffic type: `ALL` (module default)
+* max aggregation interval: `600` seconds (module default)
+
+Key characteristics:
+
+* uses CloudWatch Logs destination
+* creates a dedicated IAM role for Flow Logs delivery
+* keeps destination Log Group ownership in `logging_baseline`
+* applies consistent repository tagging
+
+Why this module is separate:
+
+* keeps environment composition thin
+* preserves clear module boundaries:
+  * `logging_baseline` manages log groups
+  * `vpc_flow_logs` manages VPC Flow Log delivery
+* makes future extension straightforward (additional VPCs, stricter settings per environment)
+
+Validation / Testing:
+
+After `terraform apply`, you can validate the setup:
+
+1) Confirm Flow Logs is enabled for the VPC:
+
+- AWS Console:
+  - VPC → Your VPC → **Flow logs**
+  - Verify status is **ACTIVE**
+  - Verify destination is **CloudWatch Logs**
+
+2) Confirm logs arrive in CloudWatch:
+
+- CloudWatch → Log groups
+- Open the log group created by `logging_baseline` for:
+  - `vpc_flow_logs`
+- Wait for the first log streams/records (traffic must exist)
 
 ---
 
@@ -390,7 +418,7 @@ terraform apply -var-file=dev.tfvars
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.33.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.34.0 |
 
 ## Modules
 
@@ -402,6 +430,7 @@ terraform apply -var-file=dev.tfvars
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
 | <a name="module_s3_bucket_app"></a> [s3\_bucket\_app](#module\_s3\_bucket\_app) | ../../modules/s3_bucket | n/a |
 | <a name="module_s3_bucket_logs"></a> [s3\_bucket\_logs](#module\_s3\_bucket\_logs) | ../../modules/s3_bucket | n/a |
+| <a name="module_vpc_flow_logs"></a> [vpc\_flow\_logs](#module\_vpc\_flow\_logs) | ../../modules/vpc_flow_logs | n/a |
 | <a name="module_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#module\_vpc\_gateway\_endpoints) | ../../modules/vpc_gateway_endpoints | n/a |
 | <a name="module_vpc_interface_endpoints"></a> [vpc\_interface\_endpoints](#module\_vpc\_interface\_endpoints) | ../../modules/vpc_interface_endpoints | n/a |
 
@@ -471,6 +500,8 @@ terraform apply -var-file=dev.tfvars
 | <a name="output_s3_gateway_endpoint_id"></a> [s3\_gateway\_endpoint\_id](#output\_s3\_gateway\_endpoint\_id) | VPC Endpoint ID for S3 gateway endpoint (null if disabled). |
 | <a name="output_s3_logs_bucket_arn"></a> [s3\_logs\_bucket\_arn](#output\_s3\_logs\_bucket\_arn) | S3 bucket ARN for centralized logs. |
 | <a name="output_s3_logs_bucket_name"></a> [s3\_logs\_bucket\_name](#output\_s3\_logs\_bucket\_name) | S3 bucket name for centralized logs (destination for access logging). |
+| <a name="output_vpc_flow_log_id"></a> [vpc\_flow\_log\_id](#output\_vpc\_flow\_log\_id) | ID of the VPC Flow Log created for the dev VPC. |
+| <a name="output_vpc_flow_logs_iam_role_arn"></a> [vpc\_flow\_logs\_iam\_role\_arn](#output\_vpc\_flow\_logs\_iam\_role\_arn) | ARN of the IAM role used by VPC Flow Logs. |
 | <a name="output_vpc_flow_logs_log_group_arn"></a> [vpc\_flow\_logs\_log\_group\_arn](#output\_vpc\_flow\_logs\_log\_group\_arn) | CloudWatch Log Group ARN for VPC Flow Logs (shared log group created by logging\_baseline). |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 <!-- END_TF_DOCS -->
