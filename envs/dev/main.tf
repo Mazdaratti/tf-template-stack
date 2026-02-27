@@ -351,3 +351,29 @@ module "logging_baseline" {
     }
   }
 }
+
+############################################
+# MODULE - VPC FLOW LOGS
+#
+# Enables VPC Flow Logs and publishes to the shared CloudWatch Log Group
+# created by logging_baseline.
+############################################
+
+module "vpc_flow_logs" {
+  source = "../../modules/vpc_flow_logs"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Wiring
+  vpc_id        = module.network.vpc_id
+  log_group_arn = module.logging_baseline.log_group_arns["vpc_flow_logs"]
+
+  # Optional arguments (defaults shown)
+  #
+  # traffic_type             = "ALL"
+  # max_aggregation_interval = 600
+  # permissions_boundary_arn = null
+}
