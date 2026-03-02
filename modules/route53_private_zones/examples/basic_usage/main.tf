@@ -91,7 +91,7 @@ module "route53_private_zones" {
         "@" = {
           type   = "TXT"
           ttl    = 300
-          values = ["\"zone apex record\""]
+          values = ["zone apex record"]
         }
 
         api = {
@@ -103,3 +103,4 @@ module "route53_private_zones" {
     }
   }
 }
+
