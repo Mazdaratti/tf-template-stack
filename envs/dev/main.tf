@@ -377,3 +377,50 @@ module "vpc_flow_logs" {
   # max_aggregation_interval = 600
   # permissions_boundary_arn = null
 }
+
+############################################
+# Module: route53_private_zones
+############################################
+#
+# Baseline private DNS namespace for the dev VPC.
+#
+# - Creates a private hosted zone
+# - Associates it with the dev VPC
+# - Records are optional (keep commented unless needed)
+############################################
+
+module "route53_private_zones" {
+  source = "../../modules/route53_private_zones"
+
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  zones = {
+    internal = {
+      domain_name = "${var.environment}.internal"
+
+      vpc_associations = [
+        {
+          vpc_id = module.network.vpc_id
+        }
+      ]
+
+      # Optional baseline records (examples)
+      #
+      # records = {
+      #   "@" = {
+      #     type   = "TXT"
+      #     ttl    = 300
+      #     values = ["dev private zone"]
+      #   }
+      #
+      #   api = {
+      #     type   = "CNAME"
+      #     ttl    = 300
+      #     values = ["internal-api.example.local"]
+      #   }
+      # }
+    }
+  }
+}
