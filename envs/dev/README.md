@@ -325,6 +325,36 @@ After `terraform apply`, you can validate the setup:
 
 ---
 
+## Route53 Private Zones (private DNS baseline)
+
+Creates a baseline **private DNS namespace** for the dev environment using Route53 private hosted zones.
+
+Implemented via:
+
+* `modules/route53_private_zones`
+
+Current dev baseline behavior:
+
+* private hosted zone logical key: `internal`
+* zone name pattern: `${environment}.internal` (dev resolves to `dev.internal`)
+* associated VPC: `module.network.vpc_id`
+* records: none by default (kept optional/commented in `main.tf`)
+
+Key characteristics:
+
+* private hosted zone only (no public hosted zones in this baseline)
+* supports one-or-more VPC associations per zone
+* supports optional baseline records (`A`, `AAAA`, `CNAME`, `TXT`)
+* applies consistent repository tagging
+
+Why this module is separate:
+
+* keeps DNS concerns isolated from network and endpoint modules
+* keeps env composition thin while preserving reusable module logic
+* provides a clean extension path for future internal service discovery needs
+
+---
+
 ## Optional endpoint policies
 
 This environment includes a **commented policy template**:
@@ -420,20 +450,6 @@ terraform apply -var-file=dev.tfvars
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 6.34.0 |
 
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_kms_keys"></a> [kms\_keys](#module\_kms\_keys) | ../../modules/kms_keys | n/a |
-| <a name="module_logging_baseline"></a> [logging\_baseline](#module\_logging\_baseline) | ../../modules/logging_baseline | n/a |
-| <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
-| <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
-| <a name="module_s3_bucket_app"></a> [s3\_bucket\_app](#module\_s3\_bucket\_app) | ../../modules/s3_bucket | n/a |
-| <a name="module_s3_bucket_logs"></a> [s3\_bucket\_logs](#module\_s3\_bucket\_logs) | ../../modules/s3_bucket | n/a |
-| <a name="module_vpc_flow_logs"></a> [vpc\_flow\_logs](#module\_vpc\_flow\_logs) | ../../modules/vpc_flow_logs | n/a |
-| <a name="module_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#module\_vpc\_gateway\_endpoints) | ../../modules/vpc_gateway_endpoints | n/a |
-| <a name="module_vpc_interface_endpoints"></a> [vpc\_interface\_endpoints](#module\_vpc\_interface\_endpoints) | ../../modules/vpc_interface_endpoints | n/a |
-
 ## Resources
 
 | Name | Type |
@@ -446,6 +462,8 @@ terraform apply -var-file=dev.tfvars
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"eu-central-1"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | The number of availability zones to use if explicit AZ list is not provided (module will pick the first N AZs in region). | `number` | `2` | no |
 | <a name="input_azs"></a> [azs](#input\_azs) | Optional explicit list of availability zones to use. If set, az\_count is ignored. | `list(string)` | `null` | no |
@@ -462,10 +480,8 @@ terraform apply -var-file=dev.tfvars
 | <a name="input_nat_reuse_eip_allocation_ids"></a> [nat\_reuse\_eip\_allocation\_ids](#input\_nat\_reuse\_eip\_allocation\_ids) | Optional list of existing EIP allocation IDs to reuse. If null, the module creates new EIPs. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | Optional explicit list of CIDR blocks for private subnets. If set, private\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_count"></a> [private\_subnet\_count](#input\_private\_subnet\_count) | Number of private subnets to create if explicit private CIDRs are not provided. | `number` | `2` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
 | <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | Optional explicit list of CIDR blocks for public subnets. If set, public\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_public_subnet_count"></a> [public\_subnet\_count](#input\_public\_subnet\_count) | Number of public subnets to create if explicit public CIDRs are not provided. | `number` | `2` | no |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 
 ## Outputs
 
@@ -495,6 +511,9 @@ terraform apply -var-file=dev.tfvars
 | <a name="output_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#output\_public\_subnet\_cidrs) | A list of CIDRs of public subnets (empty if none) |
 | <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | A list of IDs of public subnets (empty if none) |
 | <a name="output_public_subnet_ids_by_az"></a> [public\_subnet\_ids\_by\_az](#output\_public\_subnet\_ids\_by\_az) | A map of AZ name =>public subnet ID (empty if none) |
+| <a name="output_route53_private_record_fqdns"></a> [route53\_private\_record\_fqdns](#output\_route53\_private\_record\_fqdns) | Map of '<zone\_key>::<record\_key>' => computed Route53 private record FQDN. |
+| <a name="output_route53_private_zone_ids"></a> [route53\_private\_zone\_ids](#output\_route53\_private\_zone\_ids) | Map of logical zone key => Route53 private hosted zone ID. |
+| <a name="output_route53_private_zone_names"></a> [route53\_private\_zone\_names](#output\_route53\_private\_zone\_names) | Map of logical zone key => Route53 private hosted zone DNS name. |
 | <a name="output_s3_app_bucket_arn"></a> [s3\_app\_bucket\_arn](#output\_s3\_app\_bucket\_arn) | S3 bucket ARN for application data. |
 | <a name="output_s3_app_bucket_name"></a> [s3\_app\_bucket\_name](#output\_s3\_app\_bucket\_name) | S3 bucket name for application data (source bucket). |
 | <a name="output_s3_gateway_endpoint_id"></a> [s3\_gateway\_endpoint\_id](#output\_s3\_gateway\_endpoint\_id) | VPC Endpoint ID for S3 gateway endpoint (null if disabled). |
