@@ -5,7 +5,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
 ## Structure
 
 - **envs/**: Environment root modules (dev, stage, prod). Each env calls reusable modules.
-- **modules/**: Reusable Terraform modules (copied/added as needed per project).
+- **modules/**: Reusable Terraform modules shared across environments.
 - **bootstrap/** (optional): One-time prerequisites per environment (remote state, GitHub OIDC, IAM).
 - **.vscode/**: Editor tasks/settings for repeatable workflows.
 
@@ -39,8 +39,8 @@ A modular Terraform configuration for deploying applications on AWS with environ
    - NAT Gateway  
    - VPC Endpoints  
    - KMS keys (encryption baseline)  
-   - Logging baseline (CloudWatch Log Groups)  
    - Storage baseline (S3 buckets)  
+   - Logging baseline (CloudWatch Log Groups)  
    - VPC Flow Logs (network observability baseline)
    - Route53 private zones (private DNS baseline)
    - Future modules (e.g. compute)
@@ -54,6 +54,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
 ## Configuration
 
 See environment-specific `*.tfvars` files in `envs/` directories.
+
 
 
 
