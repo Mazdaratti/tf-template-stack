@@ -196,3 +196,22 @@ output "vpc_flow_logs_iam_role_arn" {
   description = "ARN of the IAM role used by VPC Flow Logs."
   value       = module.vpc_flow_logs.iam_role_arn
 }
+
+############################################
+# Route53 private zones
+############################################
+
+output "route53_private_zone_ids" {
+  description = "Map of logical zone key => Route53 private hosted zone ID."
+  value       = module.route53_private_zones.zone_ids
+}
+
+output "route53_private_zone_names" {
+  description = "Map of logical zone key => Route53 private hosted zone DNS name."
+  value       = module.route53_private_zones.zone_names
+}
+
+output "route53_private_record_fqdns" {
+  description = "Map of '<zone_key>::<record_key>' => computed Route53 private record FQDN."
+  value       = module.route53_private_zones.record_fqdns
+}
