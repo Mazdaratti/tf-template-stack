@@ -25,6 +25,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - **s3_bucket** — Secure-by-default S3 bucket with encryption, lifecycle, logging support
 - **logging_baseline** — Shared CloudWatch Log Groups with standardized naming, retention, and optional KMS encryption
 - **vpc_flow_logs** — Enables VPC Flow Logs delivery to a shared CloudWatch Log Group
+- **route53_private_zones** — Private Route53 hosted zones with multi-VPC associations and optional baseline records
 - **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
 
 ## Recommended order
@@ -41,6 +42,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
    - Logging baseline (CloudWatch Log Groups)  
    - Storage baseline (S3 buckets)  
    - VPC Flow Logs (network observability baseline)
+   - Route53 private zones (private DNS baseline)
    - Future modules (e.g. compute)
 
 ## Environments
@@ -52,3 +54,6 @@ A modular Terraform configuration for deploying applications on AWS with environ
 ## Configuration
 
 See environment-specific `*.tfvars` files in `envs/` directories.
+
+
+
