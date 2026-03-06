@@ -76,7 +76,7 @@ module "ecs_cluster" {
   # a shared logging module/output rather than created inline.
   # ECS Exec is optional and non-baseline:
   # OVERRIDE requires an explicit log group name.
-  exec_enabled                    = true
-  exec_logging                    = "OVERRIDE"
+  exec_enabled                   = true
+  exec_logging                   = "OVERRIDE"
   exec_cloudwatch_log_group_name = aws_cloudwatch_log_group.ecs_exec.name
 }
