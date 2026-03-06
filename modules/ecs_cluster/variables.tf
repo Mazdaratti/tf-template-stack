@@ -141,7 +141,10 @@ variable "default_capacity_provider_strategy" {
   validation {
     condition = (
       var.default_capacity_provider_strategy == null ||
-      alltrue([for s in var.default_capacity_provider_strategy : try(s.base, 0) >= 0])
+      alltrue([
+        for s in var.default_capacity_provider_strategy :
+        s.base == null || s.base >= 0
+      ])
     )
     error_message = "If provided, each strategy.base must be >= 0."
   }
