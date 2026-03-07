@@ -424,3 +424,31 @@ module "route53_private_zones" {
     }
   }
 }
+
+############################################
+# MODULE - ECS CLUSTER
+#
+# Baseline ECS cluster for dev compute foundation.
+# Scope intentionally limited to cluster-level primitives:
+# - no services
+# - no task definitions
+# - no load balancing
+############################################
+
+module "ecs_cluster" {
+  source = "../../modules/ecs_cluster"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Optional naming override (module default applies when null)
+  cluster_name = var.ecs_cluster_name
+
+  # Dev baseline observability
+  enable_container_insights = var.ecs_enable_container_insights
+
+  # Keep ECS Exec disabled in dev baseline for now.
+  exec_enabled = false
+}
