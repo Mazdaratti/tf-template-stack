@@ -355,6 +355,42 @@ Why this module is separate:
 
 ---
 
+## ECS Cluster (compute baseline)
+
+Creates the ECS cluster used as the compute foundation for the dev environment.
+
+Implemented via:
+
+* `modules/ecs_cluster`
+
+Current dev configuration:
+
+* creates one ECS cluster (cluster-level primitive only)
+* optional cluster name override via `ecs_cluster_name`
+* Container Insights controlled by `ecs_enable_container_insights` (enabled by default)
+* ECS Exec is disabled in the dev baseline (`exec_enabled = false`)
+* capacity providers use the module defaults (`FARGATE`, `FARGATE_SPOT`)
+
+Key characteristics:
+
+* cluster foundation only (no services, task definitions, or load balancers in this layer)
+* consistent repository tagging
+* environment remains composition-focused with reusable module boundaries
+
+Future extension path:
+
+* the baseline continues using module defaults for capacity providers
+* ECS Exec can later be enabled with `exec_logging = "OVERRIDE"`
+* when enabling ECS Exec with override logging, a CloudWatch log group must be provided
+
+Why this module is separate:
+
+* keeps compute control-plane concerns isolated from network/storage/logging modules
+* provides a reusable ECS cluster that future ECS service modules can consume
+* preserves thin environment composition
+
+---
+
 ## Optional endpoint policies
 
 This environment includes a **commented policy template**:
@@ -450,6 +486,22 @@ terraform apply -var-file=dev.tfvars
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 6.34.0 |
 
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_ecs_cluster"></a> [ecs\_cluster](#module\_ecs\_cluster) | ../../modules/ecs_cluster | n/a |
+| <a name="module_kms_keys"></a> [kms\_keys](#module\_kms\_keys) | ../../modules/kms_keys | n/a |
+| <a name="module_logging_baseline"></a> [logging\_baseline](#module\_logging\_baseline) | ../../modules/logging_baseline | n/a |
+| <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
+| <a name="module_network"></a> [network](#module\_network) | ../../modules/network | n/a |
+| <a name="module_route53_private_zones"></a> [route53\_private\_zones](#module\_route53\_private\_zones) | ../../modules/route53_private_zones | n/a |
+| <a name="module_s3_bucket_app"></a> [s3\_bucket\_app](#module\_s3\_bucket\_app) | ../../modules/s3_bucket | n/a |
+| <a name="module_s3_bucket_logs"></a> [s3\_bucket\_logs](#module\_s3\_bucket\_logs) | ../../modules/s3_bucket | n/a |
+| <a name="module_vpc_flow_logs"></a> [vpc\_flow\_logs](#module\_vpc\_flow\_logs) | ../../modules/vpc_flow_logs | n/a |
+| <a name="module_vpc_gateway_endpoints"></a> [vpc\_gateway\_endpoints](#module\_vpc\_gateway\_endpoints) | ../../modules/vpc_gateway_endpoints | n/a |
+| <a name="module_vpc_interface_endpoints"></a> [vpc\_interface\_endpoints](#module\_vpc\_interface\_endpoints) | ../../modules/vpc_interface_endpoints | n/a |
+
 ## Resources
 
 | Name | Type |
@@ -462,14 +514,14 @@ terraform apply -var-file=dev.tfvars
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"eu-central-1"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | The number of availability zones to use if explicit AZ list is not provided (module will pick the first N AZs in region). | `number` | `2` | no |
 | <a name="input_azs"></a> [azs](#input\_azs) | Optional explicit list of availability zones to use. If set, az\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Common tags passed into modules (merged with enforced tags inside each module). | `map(string)` | `{}` | no |
 | <a name="input_create_private_subnets"></a> [create\_private\_subnets](#input\_create\_private\_subnets) | Whether to create private subnets and private routing (NAT + private route table). | `bool` | `true` | no |
 | <a name="input_create_public_subnets"></a> [create\_public\_subnets](#input\_create\_public\_subnets) | Whether to create public subnets and public routing (IGW + public route table). | `bool` | `true` | no |
+| <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name) | Optional ECS cluster name override. If null, module default naming is used. | `string` | `null` | no |
+| <a name="input_ecs_enable_container_insights"></a> [ecs\_enable\_container\_insights](#input\_ecs\_enable\_container\_insights) | Whether to enable ECS Container Insights for the dev cluster baseline. | `bool` | `true` | no |
 | <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Whether instances in the VPC get DNS hostnames. | `bool` | `true` | no |
 | <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Whether DNS resolution is supported for the VPC. | `bool` | `true` | no |
 | <a name="input_enable_nat_gateway"></a> [enable\_nat\_gateway](#input\_enable\_nat\_gateway) | Whether to create NAT Gateway resources for private outbound internet access. | `bool` | `true` | no |
@@ -480,8 +532,10 @@ terraform apply -var-file=dev.tfvars
 | <a name="input_nat_reuse_eip_allocation_ids"></a> [nat\_reuse\_eip\_allocation\_ids](#input\_nat\_reuse\_eip\_allocation\_ids) | Optional list of existing EIP allocation IDs to reuse. If null, the module creates new EIPs. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | Optional explicit list of CIDR blocks for private subnets. If set, private\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_count"></a> [private\_subnet\_count](#input\_private\_subnet\_count) | Number of private subnets to create if explicit private CIDRs are not provided. | `number` | `2` | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
 | <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | Optional explicit list of CIDR blocks for public subnets. If set, public\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_public_subnet_count"></a> [public\_subnet\_count](#input\_public\_subnet\_count) | Number of public subnets to create if explicit public CIDRs are not provided. | `number` | `2` | no |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 
 ## Outputs
 
@@ -489,6 +543,11 @@ terraform apply -var-file=dev.tfvars
 |------|-------------|
 | <a name="output_azs"></a> [azs](#output\_azs) | Availability zones used by the network module. |
 | <a name="output_dynamodb_gateway_endpoint_id"></a> [dynamodb\_gateway\_endpoint\_id](#output\_dynamodb\_gateway\_endpoint\_id) | VPC Endpoint ID for DynamoDB gateway endpoint (null if disabled). |
+| <a name="output_ecs_capacity_providers"></a> [ecs\_capacity\_providers](#output\_ecs\_capacity\_providers) | Set of capacity providers associated with the dev ECS cluster. |
+| <a name="output_ecs_cluster_arn"></a> [ecs\_cluster\_arn](#output\_ecs\_cluster\_arn) | ARN of the ECS cluster created for the dev environment. |
+| <a name="output_ecs_cluster_id"></a> [ecs\_cluster\_id](#output\_ecs\_cluster\_id) | ID of the ECS cluster created for the dev environment. |
+| <a name="output_ecs_cluster_name"></a> [ecs\_cluster\_name](#output\_ecs\_cluster\_name) | Name of the ECS cluster created for the dev environment. |
+| <a name="output_ecs_default_capacity_provider_strategy"></a> [ecs\_default\_capacity\_provider\_strategy](#output\_ecs\_default\_capacity\_provider\_strategy) | Default capacity provider strategy configured on the dev ECS cluster (null if not configured). |
 | <a name="output_enabled_interface_endpoint_services"></a> [enabled\_interface\_endpoint\_services](#output\_enabled\_interface\_endpoint\_services) | Set of enabled interface endpoint service keys. |
 | <a name="output_gateway_endpoints_ids"></a> [gateway\_endpoints\_ids](#output\_gateway\_endpoints\_ids) | Map of service name => VPC Endpoint ID for gateway endpoints (S3, DynamoDB). |
 | <a name="output_interface_endpoint_arns"></a> [interface\_endpoint\_arns](#output\_interface\_endpoint\_arns) | Map of service name => VPC Endpoint ARN for interface endpoints (PrivateLink). |
