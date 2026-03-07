@@ -79,6 +79,44 @@ New infrastructure is added by appending additional module blocks.
 
 ---
 
+## Architecture flow
+
+This environment is built in layers so that foundational infrastructure is created first and reused by higher-level modules.
+
+Current composition flow:
+
+1. **Network foundation**
+   - `network`
+   - `nat_gateway`
+
+2. **Private connectivity to AWS services**
+   - `vpc_gateway_endpoints`
+   - `vpc_interface_endpoints`
+
+3. **Shared data protection and logging**
+   - `kms_keys`
+   - `s3_bucket`
+   - `logging_baseline`
+   - `vpc_flow_logs`
+
+4. **Private DNS**
+   - `route53_private_zones`
+
+5. **Compute foundation**
+   - `ecs_cluster`
+
+This structure keeps responsibilities separated:
+
+* networking modules provide connectivity primitives
+* logging and storage modules provide shared platform services
+* DNS provides internal name resolution
+* compute modules provide the execution foundation for future workloads
+
+The current ECS layer creates only the cluster foundation.
+Service-level resources such as task definitions, ECS services, and load balancing are intentionally added later in separate modules.
+
+---
+
 ## Network baseline
 
 Creates the foundational VPC layer:
