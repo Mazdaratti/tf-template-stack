@@ -215,3 +215,32 @@ output "route53_private_record_fqdns" {
   description = "Map of '<zone_key>::<record_key>' => computed Route53 private record FQDN."
   value       = module.route53_private_zones.record_fqdns
 }
+
+############################################
+# ECS Cluster
+############################################
+
+output "ecs_cluster_id" {
+  description = "ID of the ECS cluster created for the dev environment."
+  value       = module.ecs_cluster.cluster_id
+}
+
+output "ecs_cluster_arn" {
+  description = "ARN of the ECS cluster created for the dev environment."
+  value       = module.ecs_cluster.cluster_arn
+}
+
+output "ecs_cluster_name" {
+  description = "Name of the ECS cluster created for the dev environment."
+  value       = module.ecs_cluster.cluster_name
+}
+
+output "ecs_capacity_providers" {
+  description = "Set of capacity providers associated with the dev ECS cluster."
+  value       = module.ecs_cluster.capacity_providers
+}
+
+output "ecs_default_capacity_provider_strategy" {
+  description = "Default capacity provider strategy configured on the dev ECS cluster (null if not configured)."
+  value       = module.ecs_cluster.default_capacity_provider_strategy
+}

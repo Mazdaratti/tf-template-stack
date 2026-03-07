@@ -26,6 +26,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - **logging_baseline** — Shared CloudWatch Log Groups with standardized naming, retention, and optional KMS encryption
 - **vpc_flow_logs** — Enables VPC Flow Logs delivery to a shared CloudWatch Log Group
 - **route53_private_zones** — Private Route53 hosted zones with multi-VPC associations and optional baseline records
+- **ecs_cluster** — ECS cluster baseline with optional container insights/capacity provider strategy and ECS Exec controls
 - **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
 
 ## Recommended order
@@ -43,7 +44,8 @@ A modular Terraform configuration for deploying applications on AWS with environ
    - Logging baseline (CloudWatch Log Groups)  
    - VPC Flow Logs (network observability baseline)
    - Route53 private zones (private DNS baseline)
-   - Future modules (e.g. compute)
+   - ECS cluster baseline (compute control plane)
+   - Future modules (e.g. ECS services)
 
 ## Environments
 
