@@ -149,3 +149,24 @@ variable "nat_reuse_eip_allocation_ids" {
   default     = null
 }
 
+############################################
+# ECS Cluster module (baseline)
+############################################
+
+variable "ecs_cluster_name" {
+  description = "Optional ECS cluster name override. If null, module default naming is used."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.ecs_cluster_name == null || length(trimspace(var.ecs_cluster_name)) > 0
+    error_message = "ecs_cluster_name must be null or a non-empty string."
+  }
+}
+
+variable "ecs_enable_container_insights" {
+  description = "Whether to enable ECS Container Insights for the dev cluster baseline."
+  type        = bool
+  default     = true
+}
+
