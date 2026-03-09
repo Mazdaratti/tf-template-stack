@@ -52,4 +52,30 @@ locals {
   listener_ports = toset([
     for _, listener in var.listeners : listener.port
   ])
+
+  ##########################################
+  # 5. Target group names (sanitized)
+  ##########################################
+  #
+  # AWS target group names must:
+  # - be <= 32 chars
+  # - use letters, numbers, or hyphens
+  # - not start/end with a hyphen
+  #
+  # We normalize and truncate names once here so
+  # resources and tags use the same stable value.
+  #
+  target_group_name_candidates = {
+    for key, _ in var.target_groups :
+    key => trim(replace(lower("${local.alb_name}-${key}"), "/[^a-z0-9-]/", "-"), "-")
+  }
+
+  target_group_names = {
+    for key, candidate in local.target_group_name_candidates :
+    key => (
+      length(trimsuffix(substr(candidate, 0, 32), "-")) > 0
+      ? trimsuffix(substr(candidate, 0, 32), "-")
+      : "tg-${substr(md5(key), 0, 8)}"
+    )
+  }
 }
