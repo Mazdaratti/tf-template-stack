@@ -78,4 +78,17 @@ locals {
       : "tg-${substr(md5(key), 0, 8)}"
     )
   }
+
+  ##########################################
+  # 6. Target group ARN map
+  ##########################################
+  #
+  # Precompute ARNs so other resources
+  # reference a stable local mapping instead
+  # of the target group resource directly.
+  #
+  target_group_arns = {
+    for key, tg in aws_lb_target_group.this :
+    key => tg.arn
+  }
 }
