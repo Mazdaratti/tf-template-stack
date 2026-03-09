@@ -21,7 +21,7 @@ resource "aws_lb_listener" "this" {
 
   default_action {
     type             = lower(each.value.default_action.type)
-    target_group_arn = aws_lb_target_group.this[each.value.default_action.target_group_key].arn
+    target_group_arn = local.target_group_arns[each.value.default_action.target_group_key]
   }
 
   tags = merge(
