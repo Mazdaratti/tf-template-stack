@@ -1,5 +1,25 @@
 # Development Environment - Main Configuration
 
+############################################
+# Local naming helpers
+#
+# We keep the logs bucket name/ARN in one place
+# so both:
+# - module "s3_bucket_logs"
+# - env-defined bucket policies
+# use the same value.
+#
+# This avoids:
+# - duplicating the naming expression
+# - introducing a dependency cycle by referencing
+#   module.s3_bucket_logs outputs inside the policy
+#   document that is passed back into that module
+############################################
+locals {
+  logs_bucket_name = "${var.project_name}-${var.environment}-logs-${data.aws_caller_identity.current.account_id}"
+  logs_bucket_arn  = "arn:aws:s3:::${local.logs_bucket_name}"
+}
+
 ###################################
 # MODULE - NETWORK
 ###################################
@@ -229,7 +249,7 @@ module "s3_bucket_logs" {
   environment  = var.environment
   common_tags  = var.common_tags
 
-  bucket_name = "${var.project_name}-${var.environment}-logs-${data.aws_caller_identity.current.account_id}"
+  bucket_name = local.logs_bucket_name
 
   # If false (default in module), Terraform will refuse to destroy a non-empty bucket.
   # In dev we set true for convenience; in stage/prod you typically keep this false.
@@ -250,8 +270,10 @@ module "s3_bucket_logs" {
   # Bucket policy (optional):
   # If omitted (module default), no additional bucket policy is attached
   # beyond the module’s baseline TLS-only deny policy.
-  # Here we attach the env-defined policy that allows S3 access log delivery.
-  policy_json = data.aws_iam_policy_document.s3_access_logs_delivery.json
+  # Here we attach the env-defined combined policy that allows:
+  # - S3 server access log delivery from the app bucket
+  # - ALB access log delivery from the dev ingress layer
+  policy_json = data.aws_iam_policy_document.logs_bucket_combined.json
 
   # Lifecycle rules (optional):
   # If omitted (default), S3 will not expire objects automatically.
@@ -451,4 +473,74 @@ module "ecs_cluster" {
 
   # Keep ECS Exec disabled in dev baseline for now.
   exec_enabled = false
+}
+
+############################################
+# MODULE - ALB INGRESS
+#
+# Shared ingress baseline for future ECS service modules.
+# Scope in dev:
+# - one internal ALB in private subnets
+# - one HTTP listener (:80)
+# - one IP target group for later ECS attachment
+# - ALB access logs enabled to the shared logs bucket
+############################################
+
+module "alb_ingress" {
+  source = "../../modules/alb_ingress"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Core wiring
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.private_subnet_ids
+
+  # Dev baseline: internal-only ingress
+  internal = true
+
+  # Allow callers from within the VPC CIDR.
+  ingress_cidr_ipv4 = [var.vpc_cidr]
+  egress_cidr_ipv4  = ["0.0.0.0/0"]
+
+  # Baseline target group for future ECS service attachment
+  target_groups = {
+    app = {
+      port        = 8080
+      protocol    = "HTTP"
+      target_type = "ip"
+
+      health_check = {
+        path                = "/"
+        protocol            = "HTTP"
+        matcher             = "200-399"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 3
+        unhealthy_threshold = 3
+      }
+    }
+  }
+
+  # Baseline HTTP listener
+  listeners = {
+    http = {
+      port     = 80
+      protocol = "HTTP"
+      default_action = {
+        type             = "forward"
+        target_group_key = "app"
+      }
+    }
+  }
+
+  # Enable ALB access logs in dev and write them
+  # into the shared logs bucket under a dedicated prefix.
+  access_logs = {
+    enabled = true
+    bucket  = module.s3_bucket_logs.bucket_name
+    prefix  = "alb"
+  }
 }

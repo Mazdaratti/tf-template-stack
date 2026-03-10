@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "s3_access_logs_delivery" {
 
     # Restrict writes to a dedicated prefix to avoid mixing log sources.
     resources = [
-      "${module.s3_bucket_logs.bucket_arn}/app/*"
+      "${local.logs_bucket_arn}/app/*"
     ]
 
     # Restrict to the same AWS account to reduce blast radius.
@@ -49,4 +49,59 @@ data "aws_iam_policy_document" "s3_access_logs_delivery" {
       ]
     }
   }
+}
+
+############################################
+# ALB access logs delivery (dev)
+#
+# Purpose:
+# Allow the Application Load Balancer to deliver
+# access logs into the shared logs bucket under
+# the dedicated "alb/" prefix.
+############################################
+
+data "aws_iam_policy_document" "alb_access_logs_delivery" {
+  statement {
+    sid    = "AllowALBAccessLogsDelivery"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["logdelivery.elasticloadbalancing.amazonaws.com"]
+    }
+
+    actions = [
+      "s3:PutObject"
+    ]
+
+    resources = [
+      "${local.logs_bucket_arn}/alb/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
+    ]
+
+    # Restrict log delivery to load balancers
+    # in this AWS account and region.
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values = [
+        "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:loadbalancer/*"
+      ]
+    }
+  }
+}
+
+############################################
+# Combined logs bucket policy (dev)
+#
+# The shared logs bucket must allow multiple
+# writers. For the current dev baseline:
+# - S3 server access logs from the app bucket
+# - ALB access logs from the ingress layer
+############################################
+
+data "aws_iam_policy_document" "logs_bucket_combined" {
+  source_policy_documents = [
+    data.aws_iam_policy_document.s3_access_logs_delivery.json,
+    data.aws_iam_policy_document.alb_access_logs_delivery.json
+  ]
 }
