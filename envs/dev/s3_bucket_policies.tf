@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "s3_access_logs_delivery" {
 
     # Restrict writes to a dedicated prefix to avoid mixing log sources.
     resources = [
-      "${module.s3_bucket_logs.bucket_arn}/app/*"
+      "${local.logs_bucket_arn}/app/*"
     ]
 
     # Restrict to the same AWS account to reduce blast radius.
