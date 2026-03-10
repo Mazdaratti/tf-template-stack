@@ -105,15 +105,20 @@ Current composition flow:
 5. **Compute foundation**
    - `ecs_cluster`
 
+6. **Shared ingress**
+   - `alb_ingress`
+
 This structure keeps responsibilities separated:
 
 * networking modules provide connectivity primitives
 * logging and storage modules provide shared platform services
 * DNS provides internal name resolution
 * compute modules provide the execution foundation for future workloads
+* ingress modules provide shared load balancing for future services
 
 The current ECS layer creates only the cluster foundation.
-Service-level resources such as task definitions, ECS services, and load balancing are intentionally added later in separate modules.
+Service-level resources such as task definitions and ECS services are intentionally added later in separate modules.
+Load balancing is now introduced separately through the dedicated `alb_ingress` module.
 
 ---
 
@@ -233,7 +238,7 @@ This environment deploys two buckets:
 Centralized logs bucket intended for:
 
 * S3 Server Access Logs
-* future ALB access logs
+* ALB access logs
 * future VPC Flow Logs / CloudTrail integration
 
 Characteristics:
@@ -241,7 +246,10 @@ Characteristics:
 * SSE-KMS encryption using the dedicated `logs` KMS key
 * versioning enabled
 * lifecycle rules for cost control
-* restricted bucket policy allowing log delivery only from the app bucket (defined in s3_bucket_policies.tf)
+* restricted bucket policy allowing:
+  * S3 server access log delivery from the app bucket
+  * ALB access log delivery from the dev ingress layer
+  * policy definitions live in `s3_bucket_policies.tf`
 
 ---
 
@@ -411,7 +419,7 @@ Current dev configuration:
 
 Key characteristics:
 
-* cluster foundation only (no services, task definitions, or load balancers in this layer)
+* cluster foundation only (no services or task definitions in this layer)
 * consistent repository tagging
 * environment remains composition-focused with reusable module boundaries
 
@@ -425,6 +433,39 @@ Why this module is separate:
 
 * keeps compute control-plane concerns isolated from network/storage/logging modules
 * provides a reusable ECS cluster that future ECS service modules can consume
+* preserves thin environment composition
+
+---
+
+## ALB Ingress (shared ingress baseline)
+
+Creates the shared Application Load Balancer layer for future ECS service modules.
+
+Implemented via:
+
+* `modules/alb_ingress`
+
+Current dev configuration:
+
+* creates one **internal** ALB
+* places the ALB into `module.network.private_subnet_ids`
+* allows ingress from within the VPC CIDR (`var.vpc_cidr`)
+* creates one HTTP listener on port `80`
+* creates one IP target group for future ECS/Fargate service attachment
+* enables ALB access logs to the shared logs bucket under the `alb/` prefix
+
+Key characteristics:
+
+* ALB security group is managed inside the module
+* security group rules use standalone rule resources (no inline rules)
+* listener and target group wiring remain simple and baseline-focused
+* outputs are exposed for future ECS service and Route53 integration
+
+Why this module is separate:
+
+* keeps ECS cluster scope limited to cluster-level concerns
+* keeps DNS concerns outside the ingress layer
+* provides a reusable ingress primitive for future service modules
 * preserves thin environment composition
 
 ---
@@ -481,7 +522,7 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 * `kms_key_policies.tf.example` — KMS key policy templates
 * `security_groups.tf` — active security group definitions (if used)
 * `security_groups.tf.example` — security group templates (external/shared SG pattern)
-* `s3_bucket_policies.tf` — active S3 bucket policy definitions (log delivery restrictions)
+* `s3_bucket_policies.tf` — active S3 bucket policy definitions (S3 and ALB log delivery restrictions)
 
 
 ---
@@ -528,6 +569,7 @@ terraform apply -var-file=dev.tfvars
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_alb_ingress"></a> [alb\_ingress](#module\_alb\_ingress) | ../../modules/alb_ingress | n/a |
 | <a name="module_ecs_cluster"></a> [ecs\_cluster](#module\_ecs\_cluster) | ../../modules/ecs_cluster | n/a |
 | <a name="module_kms_keys"></a> [kms\_keys](#module\_kms\_keys) | ../../modules/kms_keys | n/a |
 | <a name="module_logging_baseline"></a> [logging\_baseline](#module\_logging\_baseline) | ../../modules/logging_baseline | n/a |
@@ -545,6 +587,8 @@ terraform apply -var-file=dev.tfvars
 | Name | Type |
 |------|------|
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.alb_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.logs_bucket_combined](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.s3_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.vpce_s3_restricted_to_env_buckets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
@@ -579,6 +623,13 @@ terraform apply -var-file=dev.tfvars
 
 | Name | Description |
 |------|-------------|
+| <a name="output_alb_ingress_arn"></a> [alb\_ingress\_arn](#output\_alb\_ingress\_arn) | ARN of the internal ALB created for the dev ingress baseline. |
+| <a name="output_alb_ingress_dns_name"></a> [alb\_ingress\_dns\_name](#output\_alb\_ingress\_dns\_name) | DNS name of the internal ALB created for the dev ingress baseline. |
+| <a name="output_alb_ingress_listener_arns"></a> [alb\_ingress\_listener\_arns](#output\_alb\_ingress\_listener\_arns) | Map of listener key => listener ARN for the dev ALB ingress baseline. |
+| <a name="output_alb_ingress_security_group_id"></a> [alb\_ingress\_security\_group\_id](#output\_alb\_ingress\_security\_group\_id) | Security group ID created for the dev ALB ingress baseline. |
+| <a name="output_alb_ingress_target_group_arns"></a> [alb\_ingress\_target\_group\_arns](#output\_alb\_ingress\_target\_group\_arns) | Map of target group key => target group ARN for the dev ALB ingress baseline. |
+| <a name="output_alb_ingress_target_group_names"></a> [alb\_ingress\_target\_group\_names](#output\_alb\_ingress\_target\_group\_names) | Map of target group key => target group name for the dev ALB ingress baseline. |
+| <a name="output_alb_ingress_zone_id"></a> [alb\_ingress\_zone\_id](#output\_alb\_ingress\_zone\_id) | Canonical hosted zone ID of the internal ALB created for the dev ingress baseline. |
 | <a name="output_azs"></a> [azs](#output\_azs) | Availability zones used by the network module. |
 | <a name="output_dynamodb_gateway_endpoint_id"></a> [dynamodb\_gateway\_endpoint\_id](#output\_dynamodb\_gateway\_endpoint\_id) | VPC Endpoint ID for DynamoDB gateway endpoint (null if disabled). |
 | <a name="output_ecs_capacity_providers"></a> [ecs\_capacity\_providers](#output\_ecs\_capacity\_providers) | Set of capacity providers associated with the dev ECS cluster. |
