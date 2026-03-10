@@ -20,13 +20,14 @@ locals {
   # 2. Merged tags
   ##########################################
   #
-  # Merge enforced tags with user-provided common_tags.
+  # Merge user-provided common_tags with enforced tags.
   # merge() order matters:
   # - Later values override earlier ones.
+  # - Enforced tags are placed last so they cannot be overridden.
   #
   merged_tags = merge(
-    local.enforced_tags,
-    var.common_tags
+    var.common_tags,
+    local.enforced_tags
   )
 
   ##########################################
