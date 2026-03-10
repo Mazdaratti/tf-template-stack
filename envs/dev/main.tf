@@ -1,5 +1,25 @@
 # Development Environment - Main Configuration
 
+############################################
+# Local naming helpers
+#
+# We keep the logs bucket name/ARN in one place
+# so both:
+# - module "s3_bucket_logs"
+# - env-defined bucket policies
+# use the same value.
+#
+# This avoids:
+# - duplicating the naming expression
+# - introducing a dependency cycle by referencing
+#   module.s3_bucket_logs outputs inside the policy
+#   document that is passed back into that module
+############################################
+locals {
+  logs_bucket_name = "${var.project_name}-${var.environment}-logs-${data.aws_caller_identity.current.account_id}"
+  logs_bucket_arn  = "arn:aws:s3:::${local.logs_bucket_name}"
+}
+
 ###################################
 # MODULE - NETWORK
 ###################################
@@ -229,7 +249,7 @@ module "s3_bucket_logs" {
   environment  = var.environment
   common_tags  = var.common_tags
 
-  bucket_name = "${var.project_name}-${var.environment}-logs-${data.aws_caller_identity.current.account_id}"
+  bucket_name = local.logs_bucket_name
 
   # If false (default in module), Terraform will refuse to destroy a non-empty bucket.
   # In dev we set true for convenience; in stage/prod you typically keep this false.
@@ -250,8 +270,10 @@ module "s3_bucket_logs" {
   # Bucket policy (optional):
   # If omitted (module default), no additional bucket policy is attached
   # beyond the module’s baseline TLS-only deny policy.
-  # Here we attach the env-defined policy that allows S3 access log delivery.
-  policy_json = data.aws_iam_policy_document.s3_access_logs_delivery.json
+  # Here we attach the env-defined combined policy that allows:
+  # - S3 server access log delivery from the app bucket
+  # - ALB access log delivery from the dev ingress layer
+  policy_json = data.aws_iam_policy_document.logs_bucket_combined.json
 
   # Lifecycle rules (optional):
   # If omitted (default), S3 will not expire objects automatically.
