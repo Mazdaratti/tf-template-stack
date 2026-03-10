@@ -244,3 +244,42 @@ output "ecs_default_capacity_provider_strategy" {
   description = "Default capacity provider strategy configured on the dev ECS cluster (null if not configured)."
   value       = module.ecs_cluster.default_capacity_provider_strategy
 }
+
+############################################
+# ALB Ingress
+############################################
+
+output "alb_ingress_arn" {
+  description = "ARN of the internal ALB created for the dev ingress baseline."
+  value       = module.alb_ingress.alb_arn
+}
+
+output "alb_ingress_dns_name" {
+  description = "DNS name of the internal ALB created for the dev ingress baseline."
+  value       = module.alb_ingress.alb_dns_name
+}
+
+output "alb_ingress_zone_id" {
+  description = "Canonical hosted zone ID of the internal ALB created for the dev ingress baseline."
+  value       = module.alb_ingress.alb_zone_id
+}
+
+output "alb_ingress_security_group_id" {
+  description = "Security group ID created for the dev ALB ingress baseline."
+  value       = module.alb_ingress.security_group_id
+}
+
+output "alb_ingress_listener_arns" {
+  description = "Map of listener key => listener ARN for the dev ALB ingress baseline."
+  value       = module.alb_ingress.listener_arns
+}
+
+output "alb_ingress_target_group_arns" {
+  description = "Map of target group key => target group ARN for the dev ALB ingress baseline."
+  value       = module.alb_ingress.target_group_arns
+}
+
+output "alb_ingress_target_group_names" {
+  description = "Map of target group key => target group name for the dev ALB ingress baseline."
+  value       = module.alb_ingress.target_group_names
+}
