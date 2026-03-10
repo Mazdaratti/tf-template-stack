@@ -9,7 +9,9 @@ locals {
     ManagedBy   = "Terraform"
   }
 
-  merged_tags = merge(local.enforced_tags, var.common_tags)
+  # Final tags applied to resources.
+  # Enforced tags are placed last so they cannot be overridden.
+  merged_tags = merge(var.common_tags, local.enforced_tags)
 }
 
 ############################################
