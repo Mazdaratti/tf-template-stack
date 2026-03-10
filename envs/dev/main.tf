@@ -452,3 +452,73 @@ module "ecs_cluster" {
   # Keep ECS Exec disabled in dev baseline for now.
   exec_enabled = false
 }
+
+############################################
+# MODULE - ALB INGRESS
+#
+# Shared ingress baseline for future ECS service modules.
+# Scope in dev:
+# - one internal ALB in private subnets
+# - one HTTP listener (:80)
+# - one IP target group for later ECS attachment
+# - ALB access logs enabled to the shared logs bucket
+############################################
+
+module "alb_ingress" {
+  source = "../../modules/alb_ingress"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  # Core wiring
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.private_subnet_ids
+
+  # Dev baseline: internal-only ingress
+  internal = true
+
+  # Allow callers from within the VPC CIDR.
+  ingress_cidr_ipv4 = [var.vpc_cidr]
+  egress_cidr_ipv4  = ["0.0.0.0/0"]
+
+  # Baseline target group for future ECS service attachment
+  target_groups = {
+    app = {
+      port        = 8080
+      protocol    = "HTTP"
+      target_type = "ip"
+
+      health_check = {
+        path                = "/"
+        protocol            = "HTTP"
+        matcher             = "200-399"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 3
+        unhealthy_threshold = 3
+      }
+    }
+  }
+
+  # Baseline HTTP listener
+  listeners = {
+    http = {
+      port     = 80
+      protocol = "HTTP"
+      default_action = {
+        type             = "forward"
+        target_group_key = "app"
+      }
+    }
+  }
+
+  # Enable ALB access logs in dev and write them
+  # into the shared logs bucket under a dedicated prefix.
+  access_logs = {
+    enabled = true
+    bucket  = module.s3_bucket_logs.bucket_name
+    prefix  = "alb"
+  }
+}
