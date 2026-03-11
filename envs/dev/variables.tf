@@ -170,3 +170,23 @@ variable "ecs_enable_container_insights" {
   default     = true
 }
 
+############################################
+# ECS Fargate Service module (dev workload)
+############################################
+
+variable "ecs_service_image_uri" {
+  description = <<-EOT
+  Container image URI for the dev ECS Fargate service.
+
+  This is the only workload-specific input exposed at the env layer in v1.
+  Service sizing, port, subnet placement, logging, and ALB integration stay
+  opinionated in envs/dev to keep the baseline small and predictable.
+  EOT
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.ecs_service_image_uri)) > 0
+    error_message = "ecs_service_image_uri must not be empty."
+  }
+}
+
