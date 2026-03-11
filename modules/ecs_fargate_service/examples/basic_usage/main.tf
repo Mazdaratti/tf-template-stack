@@ -14,6 +14,16 @@
 # This example creates a NAT Gateway so private Fargate
 # tasks can pull images and reach required AWS/public
 # endpoints without assigning public IPs.
+#
+# Why are the ECS tasks placed in private subnets?
+# - This matches the intended baseline architecture for the module.
+# - Tasks do not receive public IPs and are not directly reachable.
+#
+# Why is a NAT Gateway included?
+# - Private Fargate tasks still need outbound connectivity to pull
+#   container images and publish logs.
+# - Using NAT keeps the service private while still making the
+#   example runnable end-to-end.
 ############################################
 
 provider "aws" {
@@ -28,6 +38,14 @@ data "aws_availability_zones" "available" {
 ############################################
 # Minimal network for private task placement
 ############################################
+#
+# Network shape in this example:
+# - public subnets: NAT Gateway placement
+# - private subnets: ECS tasks
+#
+# This is larger than the smallest possible demo, but it reflects
+# the private-service pattern more accurately than a public-subnet
+# example with assign_public_ip = true.
 
 resource "aws_vpc" "this" {
   cidr_block           = "10.80.0.0/16"
@@ -127,8 +145,8 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.this.id
 
   # NAT Gateway is required here so private Fargate tasks
-  # can pull container images and publish logs without
-  # receiving public IPs.
+  # can pull container images and publish logs while staying
+  # in private subnets with assign_public_ip = false.
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.this.id
@@ -200,6 +218,8 @@ module "ecs_fargate_service" {
   cpu    = 256
   memory = 512
 
+  # This example uses a simple public image so the module can be
+  # exercised without first creating an ECR repository.
   container = {
     name  = "app"
     image = "public.ecr.aws/docker/library/nginx:stable"
