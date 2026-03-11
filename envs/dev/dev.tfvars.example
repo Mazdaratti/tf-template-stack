@@ -17,6 +17,20 @@ common_tags = {
   Team = "Platform"
 }
 
+############################################
+# ECS Fargate Service (dev workload)
+############################################
+
+# Container image URI for the dev ECS service.
+#
+# This is the only workload-specific input exposed at the env layer.
+# Service sizing, subnet placement, ALB wiring, and logging remain
+# opinionated in envs/dev so the baseline stays small and predictable.
+#
+# Example:
+# ecs_service_image_uri = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/app:dev"
+ecs_service_image_uri = "public.ecr.aws/docker/library/nginx:stable"
+
 # ---- Network (VPC) ----
 # Required
 vpc_cidr = "10.10.0.0/16"

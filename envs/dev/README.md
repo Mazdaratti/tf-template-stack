@@ -108,17 +108,28 @@ Current composition flow:
 6. **Shared ingress**
    - `alb_ingress`
 
+7. **Workload service layer**
+   - `ecs_fargate_service`
+
 This structure keeps responsibilities separated:
 
 * networking modules provide connectivity primitives
 * logging and storage modules provide shared platform services
 * DNS provides internal name resolution
-* compute modules provide the execution foundation for future workloads
-* ingress modules provide shared load balancing for future services
+* compute foundation modules provide the cluster baseline for workloads
+* ingress modules provide shared load balancing
+* workload modules attach application services onto the shared platform baseline
 
-The current ECS layer creates only the cluster foundation.
-Service-level resources such as task definitions and ECS services are intentionally added later in separate modules.
-Load balancing is now introduced separately through the dedicated `alb_ingress` module.
+The current ECS layer is now split into:
+
+* `ecs_cluster` for the cluster foundation
+* `ecs_fargate_service` for service-level resources such as:
+  * task definitions
+  * ECS services
+  * service security groups
+  * service log groups
+
+This keeps cluster, ingress, and workload responsibilities cleanly separated.
 
 ---
 
@@ -468,6 +479,34 @@ Why this module is separate:
 * provides a reusable ingress primitive for future service modules
 * preserves thin environment composition
 
+Workload services attach to shared target groups without re-owning ingress infrastructure.
+
+---
+
+## ECS Fargate Service (workload baseline)
+
+Creates the first real ECS workload service layer for the dev environment.
+
+Implemented via:
+
+* `modules/ecs_fargate_service`
+
+Current dev baseline characteristics:
+
+* runs in private subnets
+* does not assign public IPs
+* attaches to the shared ALB target group
+* allows ingress only from the ALB security group
+* creates a dedicated service security group
+* creates a dedicated CloudWatch Log Group encrypted with the shared logs KMS key
+
+Why this module exists:
+
+* keeps `ecs_cluster` focused on cluster-level concerns only
+* keeps shared ALB ownership in `alb_ingress`
+* moves workload-specific service resources into a reusable service module
+* demonstrates the intended platform -> ingress -> service composition in `envs/dev`
+
 ---
 
 ## Optional endpoint policies
@@ -563,7 +602,7 @@ terraform apply -var-file=dev.tfvars
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.34.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.35.1 |
 
 ## Modules
 
@@ -571,6 +610,7 @@ terraform apply -var-file=dev.tfvars
 |------|--------|---------|
 | <a name="module_alb_ingress"></a> [alb\_ingress](#module\_alb\_ingress) | ../../modules/alb_ingress | n/a |
 | <a name="module_ecs_cluster"></a> [ecs\_cluster](#module\_ecs\_cluster) | ../../modules/ecs_cluster | n/a |
+| <a name="module_ecs_fargate_service"></a> [ecs\_fargate\_service](#module\_ecs\_fargate\_service) | ../../modules/ecs_fargate_service | n/a |
 | <a name="module_kms_keys"></a> [kms\_keys](#module\_kms\_keys) | ../../modules/kms_keys | n/a |
 | <a name="module_logging_baseline"></a> [logging\_baseline](#module\_logging\_baseline) | ../../modules/logging_baseline | n/a |
 | <a name="module_nat_gateway"></a> [nat\_gateway](#module\_nat\_gateway) | ../../modules/nat_gateway | n/a |
@@ -604,6 +644,7 @@ terraform apply -var-file=dev.tfvars
 | <a name="input_create_public_subnets"></a> [create\_public\_subnets](#input\_create\_public\_subnets) | Whether to create public subnets and public routing (IGW + public route table). | `bool` | `true` | no |
 | <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name) | Optional ECS cluster name override. If null, module default naming is used. | `string` | `null` | no |
 | <a name="input_ecs_enable_container_insights"></a> [ecs\_enable\_container\_insights](#input\_ecs\_enable\_container\_insights) | Whether to enable ECS Container Insights for the dev cluster baseline. | `bool` | `true` | no |
+| <a name="input_ecs_service_image_uri"></a> [ecs\_service\_image\_uri](#input\_ecs\_service\_image\_uri) | Container image URI for the dev ECS Fargate service.<br/><br/>This is the only workload-specific input exposed at the env layer in v1.<br/>Service sizing, port, subnet placement, logging, and ALB integration stay<br/>opinionated in envs/dev to keep the baseline small and predictable. | `string` | n/a | yes |
 | <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Whether instances in the VPC get DNS hostnames. | `bool` | `true` | no |
 | <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Whether DNS resolution is supported for the VPC. | `bool` | `true` | no |
 | <a name="input_enable_nat_gateway"></a> [enable\_nat\_gateway](#input\_enable\_nat\_gateway) | Whether to create NAT Gateway resources for private outbound internet access. | `bool` | `true` | no |
@@ -637,6 +678,12 @@ terraform apply -var-file=dev.tfvars
 | <a name="output_ecs_cluster_id"></a> [ecs\_cluster\_id](#output\_ecs\_cluster\_id) | ID of the ECS cluster created for the dev environment. |
 | <a name="output_ecs_cluster_name"></a> [ecs\_cluster\_name](#output\_ecs\_cluster\_name) | Name of the ECS cluster created for the dev environment. |
 | <a name="output_ecs_default_capacity_provider_strategy"></a> [ecs\_default\_capacity\_provider\_strategy](#output\_ecs\_default\_capacity\_provider\_strategy) | Default capacity provider strategy configured on the dev ECS cluster (null if not configured). |
+| <a name="output_ecs_service_arn"></a> [ecs\_service\_arn](#output\_ecs\_service\_arn) | ARN of the ECS Fargate service created for the dev workload baseline. |
+| <a name="output_ecs_service_id"></a> [ecs\_service\_id](#output\_ecs\_service\_id) | ID of the ECS Fargate service created for the dev workload baseline. |
+| <a name="output_ecs_service_log_group_name"></a> [ecs\_service\_log\_group\_name](#output\_ecs\_service\_log\_group\_name) | CloudWatch Log Group name created for the dev ECS Fargate service. |
+| <a name="output_ecs_service_name"></a> [ecs\_service\_name](#output\_ecs\_service\_name) | Name of the ECS Fargate service created for the dev workload baseline. |
+| <a name="output_ecs_service_security_group_id"></a> [ecs\_service\_security\_group\_id](#output\_ecs\_service\_security\_group\_id) | Security group ID created for the dev ECS Fargate service. |
+| <a name="output_ecs_service_task_definition_arn"></a> [ecs\_service\_task\_definition\_arn](#output\_ecs\_service\_task\_definition\_arn) | ARN of the ECS task definition used by the dev workload baseline. |
 | <a name="output_enabled_interface_endpoint_services"></a> [enabled\_interface\_endpoint\_services](#output\_enabled\_interface\_endpoint\_services) | Set of enabled interface endpoint service keys. |
 | <a name="output_gateway_endpoints_ids"></a> [gateway\_endpoints\_ids](#output\_gateway\_endpoints\_ids) | Map of service name => VPC Endpoint ID for gateway endpoints (S3, DynamoDB). |
 | <a name="output_interface_endpoint_arns"></a> [interface\_endpoint\_arns](#output\_interface\_endpoint\_arns) | Map of service name => VPC Endpoint ARN for interface endpoints (PrivateLink). |

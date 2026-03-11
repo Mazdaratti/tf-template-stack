@@ -283,3 +283,37 @@ output "alb_ingress_target_group_names" {
   description = "Map of target group key => target group name for the dev ALB ingress baseline."
   value       = module.alb_ingress.target_group_names
 }
+
+############################################
+# ECS Fargate Service
+############################################
+
+output "ecs_service_id" {
+  description = "ID of the ECS Fargate service created for the dev workload baseline."
+  value       = module.ecs_fargate_service.service_id
+}
+
+output "ecs_service_name" {
+  description = "Name of the ECS Fargate service created for the dev workload baseline."
+  value       = module.ecs_fargate_service.service_name
+}
+
+output "ecs_service_arn" {
+  description = "ARN of the ECS Fargate service created for the dev workload baseline."
+  value       = module.ecs_fargate_service.service_arn
+}
+
+output "ecs_service_task_definition_arn" {
+  description = "ARN of the ECS task definition used by the dev workload baseline."
+  value       = module.ecs_fargate_service.task_definition_arn
+}
+
+output "ecs_service_security_group_id" {
+  description = "Security group ID created for the dev ECS Fargate service."
+  value       = module.ecs_fargate_service.security_group_id
+}
+
+output "ecs_service_log_group_name" {
+  description = "CloudWatch Log Group name created for the dev ECS Fargate service."
+  value       = module.ecs_fargate_service.log_group_name
+}

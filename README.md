@@ -28,6 +28,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
 - **route53_private_zones** — Private Route53 hosted zones with multi-VPC associations and optional baseline records
 - **ecs_cluster** — ECS cluster baseline with optional container insights/capacity provider strategy and ECS Exec controls
 - **alb_ingress** — Shared Application Load Balancer ingress baseline with security groups, listeners, target groups, and optional access logs
+- **ecs_fargate_service** — Reusable ECS Fargate service baseline with task definition, service, IAM roles, service security group, optional CloudWatch logging, and optional existing target group attachment
 - **remote_backend** — S3 + DynamoDB remote state backend (bootstrap use)
 
 ## Recommended order
@@ -47,7 +48,7 @@ A modular Terraform configuration for deploying applications on AWS with environ
    - Route53 private zones (private DNS baseline)
    - ECS cluster baseline (compute control plane)
    - ALB ingress baseline (shared ingress layer)
-   - Future modules (e.g. ECS services)
+   - ECS Fargate service baseline (workload service layer)
 
 ## Environments
 
