@@ -544,3 +544,80 @@ module "alb_ingress" {
     prefix  = "alb"
   }
 }
+
+############################################
+# MODULE - ECS FARGATE SERVICE
+#
+# First workload-layer baseline in dev.
+#
+# Design choices in this env wiring:
+# - service runs in private subnets
+# - tasks do not receive public IPs
+# - ingress is allowed only from the ALB security group
+# - service attaches to the shared "app" target group from alb_ingress
+# - service log group is encrypted with the shared logs KMS key
+#
+# Why keep this opinionated in envs/dev?
+# - dev should stay small and predictable
+# - this avoids exposing every module input at the root layer
+# - it demonstrates the intended platform -> ingress -> service composition
+############################################
+
+module "ecs_fargate_service" {
+  source = "../../modules/ecs_fargate_service"
+
+  # Identity + tags
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+
+  ##########################################
+  # Core wiring
+  ##########################################
+  cluster_arn = module.ecs_cluster.cluster_arn
+  vpc_id      = module.network.vpc_id
+  subnet_ids  = module.network.private_subnet_ids
+
+  ##########################################
+  # Service baseline
+  ##########################################
+  desired_count    = 1
+  assign_public_ip = false
+
+  cpu    = 256
+  memory = 512
+
+  # The shared dev target group health check uses "/",
+  # so the container must answer successfully on that path.
+  container = {
+    name  = "app"
+    image = var.ecs_service_image_uri
+    port  = 8080
+    command = [
+      "sh",
+      "-c",
+      "sed -i 's/listen       80;/listen       8080;/' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    ]
+  }
+
+  ##########################################
+  # Logging
+  ##########################################
+  enable_cloudwatch_logging = true
+  log_retention_in_days     = 30
+  log_kms_key_arn           = module.kms_keys.key_arns["logs"]
+
+  ##########################################
+  # ALB integration
+  ##########################################
+  load_balancer = {
+    target_group_arn = module.alb_ingress.target_group_arns["app"]
+  }
+
+  # Only the shared ALB may reach the service.
+  ingress_source_security_group_ids = [module.alb_ingress.security_group_id]
+
+  # Give the service a short warm-up window before ALB
+  # health checks affect task replacement decisions.
+  health_check_grace_period_seconds = 30
+}
