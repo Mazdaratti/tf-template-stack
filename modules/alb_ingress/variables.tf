@@ -70,7 +70,7 @@ variable "name" {
   default     = null
 
   validation {
-    condition     = var.name == null || length(trimspace(var.name)) > 0
+    condition     = var.name == null || length(trimspace(coalesce(var.name, ""))) > 0
     error_message = "name must be null or a non-empty string."
   }
 }
@@ -254,7 +254,7 @@ variable "target_groups" {
   validation {
     condition = alltrue([
       for _, tg in var.target_groups :
-      try(tg.deregistration_delay, null) == null || (tg.deregistration_delay >= 0 && tg.deregistration_delay <= 3600)
+      try(tg.deregistration_delay >= 0 && tg.deregistration_delay <= 3600, true)
     ])
     error_message = "If provided, deregistration_delay must be between 0 and 3600."
   }
@@ -262,7 +262,7 @@ variable "target_groups" {
   validation {
     condition = alltrue([
       for _, tg in var.target_groups :
-      try(tg.slow_start, null) == null || (tg.slow_start >= 0 && tg.slow_start <= 900)
+      try(tg.slow_start >= 0 && tg.slow_start <= 900, true)
     ])
     error_message = "If provided, slow_start must be between 0 and 900."
   }
@@ -270,7 +270,7 @@ variable "target_groups" {
   validation {
     condition = alltrue([
       for _, tg in var.target_groups :
-      try(tg.load_balancing_algorithm_type, null) == null || contains(["round_robin", "least_outstanding_requests"], lower(tg.load_balancing_algorithm_type))
+      try(contains(["round_robin", "least_outstanding_requests"], lower(tg.load_balancing_algorithm_type)), true)
     ])
     error_message = "If provided, load_balancing_algorithm_type must be round_robin or least_outstanding_requests."
   }
