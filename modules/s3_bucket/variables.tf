@@ -157,7 +157,7 @@ variable "lifecycle_rules" {
   validation {
     condition = alltrue([
       for r in var.lifecycle_rules : (
-        try(r.expiration_days, null) == null || r.expiration_days > 0
+        try(r.expiration_days > 0, true)
       )
     ])
     error_message = "If set, lifecycle_rules[*].expiration_days must be > 0."
@@ -166,7 +166,7 @@ variable "lifecycle_rules" {
   validation {
     condition = alltrue([
       for r in var.lifecycle_rules : (
-        try(r.noncurrent_version_expiration_days, null) == null || r.noncurrent_version_expiration_days > 0
+        try(r.noncurrent_version_expiration_days > 0, true)
       )
     ])
     error_message = "If set, lifecycle_rules[*].noncurrent_version_expiration_days must be > 0."
@@ -175,7 +175,7 @@ variable "lifecycle_rules" {
   validation {
     condition = alltrue([
       for r in var.lifecycle_rules : (
-        try(r.abort_incomplete_multipart_upload_days, null) == null || r.abort_incomplete_multipart_upload_days > 0
+        try(r.abort_incomplete_multipart_upload_days > 0, true)
       )
     ])
     error_message = "If set, lifecycle_rules[*].abort_incomplete_multipart_upload_days must be > 0."
