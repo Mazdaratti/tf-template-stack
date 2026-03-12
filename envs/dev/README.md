@@ -29,6 +29,7 @@ Instead:
    * create the S3 state bucket
    * create the DynamoDB lock table
    * generate `envs/dev/backend.tf` automatically
+   * create the GitHub Actions deployment role used later for deployment automation
 
 `backend.tf` is treated as a **generated artifact**.
 
@@ -577,9 +578,10 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 
 ## Usage
 
-Run the following commands from inside `envs/dev/`.
+If not already done:
+> Run `bootstrap/dev` first to generate `backend.tf` and provision the GitHub Actions deployment role. The CI validation workflow does not use that role.
 
-> If using the remote backend, run `bootstrap/dev` first to generate `backend.tf`.
+Run the following commands from inside `envs/dev/`.
 
 ```shell
 terraform init
