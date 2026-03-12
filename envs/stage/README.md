@@ -1,19 +1,26 @@
 # Staging Environment
 
-Configuration for the staging environment deployment.
+This folder is the planned Terraform root module for the `stage` environment.
 
-## Prerequisites
+It exists to show how the same reusable module pattern used in `envs/dev` can later be extended into a staging environment with stricter sizing, rollout, and validation requirements.
 
-- Terraform >= 0.13
-- AWS credentials configured
+Current status:
 
-## Usage
+- `envs/dev` is the fully demonstrated environment in this repository
+- `envs/stage` is intentionally reserved as the next environment extension path
+- the staging root module is not fully implemented yet
 
-```shell
-terraform init
-terraform plan -var-file=stage.tfvars
-terraform apply -var-file=stage.tfvars
-```
+When this environment is implemented, it should follow the same architecture pattern:
+
+- thin root-module composition
+- reusable modules from `modules/`
+- private-by-default networking
+- shared encryption, logging, and ingress baselines
+- ECS workload deployment through the service module layer
+
+For the current fully documented environment flow, see:
+
+- `envs/dev/README.md`
 
 <!-- BEGIN_TF_DOCS -->
 
