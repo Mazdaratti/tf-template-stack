@@ -77,7 +77,7 @@ This layered composition keeps responsibilities separated:
 
 - **envs/**: Environment root modules (`dev`, `stage`, `prod`). Each environment composes reusable modules.
 - **modules/**: Reusable Terraform modules shared across environments.
-- **bootstrap/**: One-time prerequisites such as remote state backend and optional GitHub OIDC / IAM setup.
+- **bootstrap/**: One-time prerequisites such as remote state backend creation, generated backend configuration, and hardened GitHub Actions deploy-role setup via OIDC.
 
 ---
 
@@ -103,7 +103,7 @@ This layered composition keeps responsibilities separated:
 
 1. `bootstrap/dev`
    - create remote backend (S3 + DynamoDB)
-   - set up GitHub OIDC / IAM if used
+   - set up the GitHub Actions deployment role via OIDC
 
 2. `envs/dev`
    - network baseline
@@ -126,7 +126,10 @@ This ordering reflects the current implementation path and keeps foundational in
 
 Start with the `dev` environment.
 
-1. Bootstrap the remote backend using `bootstrap/dev/README.md`
+1. Run `bootstrap/dev` using `bootstrap/dev/readme.md` first to:
+   - create the remote backend
+   - generate `envs/dev/backend.tf`
+   - create the GitHub Actions deployment role used for later deployment automation
 2. Copy `envs/dev/dev.tfvars.example` to `dev.tfvars`
 3. Set the required values, including the ECS workload image URI
 4. Deploy from inside `envs/dev/`:
@@ -169,6 +172,8 @@ It validates:
 - all implemented reusable modules under `modules/`
 
 This keeps CI detached from remote state and AWS credentials while still verifying the real Terraform roots currently implemented in the repository.
+
+The GitHub Actions OIDC role created by `bootstrap/dev` is reserved for future deployment workflows and is not used by the CI validation workflow.
 
 ---
 
