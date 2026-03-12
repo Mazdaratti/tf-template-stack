@@ -169,14 +169,6 @@ variable "ingress_source_security_group_ids" {
     ])
     error_message = "ingress_source_security_group_ids must not contain empty values."
   }
-
-  validation {
-    condition = (
-      length(var.ingress_cidr_ipv4) > 0 ||
-      length(var.ingress_source_security_group_ids) > 0
-    )
-    error_message = "At least one ingress source must be provided via ingress_cidr_ipv4 or ingress_source_security_group_ids."
-  }
 }
 
 variable "egress_cidr_ipv4" {
@@ -334,13 +326,5 @@ variable "listeners" {
       lower(l.default_action.type) == "forward"
     ])
     error_message = "Each listener default_action.type must be forward in v1."
-  }
-
-  validation {
-    condition = alltrue([
-      for _, l in var.listeners :
-      contains(keys(var.target_groups), l.default_action.target_group_key)
-    ])
-    error_message = "Each listener default_action.target_group_key must reference an existing target_groups key."
   }
 }
