@@ -74,11 +74,6 @@ variable "create_security_group" {
   description = "Whether to create a minimal security group for the interface endpoints."
   type        = bool
   default     = false
-
-  validation {
-    condition     = var.create_security_group || length(var.security_group_ids) > 0
-    error_message = "If create_security_group is false, you must provide at least one security_group_id."
-  }
 }
 
 ############################################
