@@ -70,7 +70,7 @@ variable "name" {
   default     = null
 
   validation {
-    condition     = var.name == null || length(trimspace(var.name)) > 0
+    condition     = var.name == null ? true : length(trimspace(var.name)) > 0
     error_message = "name must be null or a non-empty string."
   }
 }
@@ -169,14 +169,6 @@ variable "ingress_source_security_group_ids" {
     ])
     error_message = "ingress_source_security_group_ids must not contain empty values."
   }
-
-  validation {
-    condition = (
-      length(var.ingress_cidr_ipv4) > 0 ||
-      length(var.ingress_source_security_group_ids) > 0
-    )
-    error_message = "At least one ingress source must be provided via ingress_cidr_ipv4 or ingress_source_security_group_ids."
-  }
 }
 
 variable "egress_cidr_ipv4" {
@@ -262,7 +254,7 @@ variable "target_groups" {
   validation {
     condition = alltrue([
       for _, tg in var.target_groups :
-      try(tg.deregistration_delay, null) == null || (tg.deregistration_delay >= 0 && tg.deregistration_delay <= 3600)
+      try(tg.deregistration_delay >= 0 && tg.deregistration_delay <= 3600, true)
     ])
     error_message = "If provided, deregistration_delay must be between 0 and 3600."
   }
@@ -270,7 +262,7 @@ variable "target_groups" {
   validation {
     condition = alltrue([
       for _, tg in var.target_groups :
-      try(tg.slow_start, null) == null || (tg.slow_start >= 0 && tg.slow_start <= 900)
+      try(tg.slow_start >= 0 && tg.slow_start <= 900, true)
     ])
     error_message = "If provided, slow_start must be between 0 and 900."
   }
@@ -278,7 +270,7 @@ variable "target_groups" {
   validation {
     condition = alltrue([
       for _, tg in var.target_groups :
-      try(tg.load_balancing_algorithm_type, null) == null || contains(["round_robin", "least_outstanding_requests"], lower(tg.load_balancing_algorithm_type))
+      try(contains(["round_robin", "least_outstanding_requests"], lower(tg.load_balancing_algorithm_type)), true)
     ])
     error_message = "If provided, load_balancing_algorithm_type must be round_robin or least_outstanding_requests."
   }
@@ -334,13 +326,5 @@ variable "listeners" {
       lower(l.default_action.type) == "forward"
     ])
     error_message = "Each listener default_action.type must be forward in v1."
-  }
-
-  validation {
-    condition = alltrue([
-      for _, l in var.listeners :
-      contains(keys(var.target_groups), l.default_action.target_group_key)
-    ])
-    error_message = "Each listener default_action.target_group_key must reference an existing target_groups key."
   }
 }

@@ -1,0 +1,94 @@
+name: Terraform Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  terraform-fmt:
+    name: Terraform Fmt Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.6.6
+          terraform_wrapper: false
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+
+  terraform-validate-and-lint:
+    name: Validate ${{ matrix.directory }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        directory:
+          - bootstrap/dev
+          - envs/dev
+          - modules/network
+          - modules/nat_gateway
+          - modules/vpc_gateway_endpoints
+          - modules/vpc_interface_endpoints
+          - modules/kms_keys
+          - modules/s3_bucket
+          - modules/logging_baseline
+          - modules/vpc_flow_logs
+          - modules/route53_private_zones
+          - modules/ecs_cluster
+          - modules/alb_ingress
+          - modules/ecs_fargate_service
+          - modules/remote_backend
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.directory }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.6.6
+          terraform_wrapper: false
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.60.0
+          tflint_wrapper: false
+
+      - name: Show Terraform version
+        run: terraform version
+
+      - name: Show TFLint version
+        run: tflint --version
+
+      - name: Terraform init (backend disabled)
+        run: terraform init -backend=false -input=false
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Initialize TFLint
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        run: tflint

@@ -126,7 +126,7 @@ variable "log_groups" {
   validation {
     condition = alltrue([
       for _, v in var.log_groups : (
-        try(v.retention_in_days, null) == null || v.retention_in_days > 0
+        try(v.retention_in_days > 0, true)
       )
     ])
     error_message = "If provided, each log group's retention_in_days must be greater than 0."

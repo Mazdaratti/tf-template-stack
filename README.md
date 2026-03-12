@@ -153,6 +153,23 @@ tflint
 terraform-docs
 ```
 
+GitHub Actions now runs the Terraform validation workflow for pull requests and for pushes to `main`.
+
+The first CI workflow is intentionally focused on safe validation only:
+
+- `terraform fmt -check -recursive`
+- `terraform init -backend=false`
+- `terraform validate`
+- `tflint`
+
+It validates:
+
+- `bootstrap/dev`
+- `envs/dev`
+- all implemented reusable modules under `modules/`
+
+This keeps CI detached from remote state and AWS credentials while still verifying the real Terraform roots currently implemented in the repository.
+
 ---
 
 ## Design principles
