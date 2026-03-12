@@ -59,7 +59,7 @@ EOT
   validation {
     condition = alltrue([
       for _, v in var.keys :
-      v.alias_name == null || startswith(coalesce(v.alias_name, ""), "alias/")
+      v.alias_name == null ? true : startswith(v.alias_name, "alias/")
     ])
     error_message = "If provided, alias_name must start with 'alias/'."
   }
