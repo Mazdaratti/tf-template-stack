@@ -178,7 +178,7 @@ variable "exec_cloudwatch_log_group_name" {
   default     = null
 
   validation {
-    condition     = var.exec_cloudwatch_log_group_name == null || length(trimspace(coalesce(var.exec_cloudwatch_log_group_name, ""))) > 0
+    condition     = var.exec_cloudwatch_log_group_name == null ? true : length(trimspace(var.exec_cloudwatch_log_group_name)) > 0
     error_message = "exec_cloudwatch_log_group_name must be null or a non-empty string."
   }
 }
