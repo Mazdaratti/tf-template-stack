@@ -72,6 +72,8 @@ jobs:
         with:
           tflint_version: v0.60.0
           tflint_wrapper: false
+          tflint_config_path: .tflint.hcl
+          cache: true
 
       - name: Show Terraform version
         run: terraform version
@@ -87,6 +89,8 @@ jobs:
 
       - name: Initialize TFLint
         run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run TFLint
         run: tflint
