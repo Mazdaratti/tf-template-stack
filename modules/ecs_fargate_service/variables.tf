@@ -80,7 +80,7 @@ variable "name" {
   default     = null
 
   validation {
-    condition     = var.name == null || length(trimspace(coalesce(var.name, ""))) > 0
+    condition     = var.name == null ? true : length(trimspace(var.name)) > 0
     error_message = "name must be null or a non-empty string."
   }
 }
@@ -347,7 +347,7 @@ variable "log_group_name" {
   default     = null
 
   validation {
-    condition     = var.log_group_name == null || length(trimspace(coalesce(var.log_group_name, ""))) > 0
+    condition     = var.log_group_name == null ? true : length(trimspace(var.log_group_name)) > 0
     error_message = "log_group_name must be null or a non-empty string."
   }
 }
@@ -403,7 +403,7 @@ variable "permissions_boundary_arn" {
   validation {
     condition = (
       var.permissions_boundary_arn == null ||
-      length(trimspace(coalesce(var.permissions_boundary_arn, ""))) > 0
+      (var.permissions_boundary_arn == null ? true : length(trimspace(var.permissions_boundary_arn)) > 0)
     )
     error_message = "permissions_boundary_arn must be null or a non-empty ARN string."
   }
