@@ -80,7 +80,7 @@ variable "name" {
   default     = null
 
   validation {
-    condition     = var.name == null || length(trimspace(var.name)) > 0
+    condition     = var.name == null || length(trimspace(coalesce(var.name, ""))) > 0
     error_message = "name must be null or a non-empty string."
   }
 }
@@ -215,7 +215,7 @@ variable "runtime_platform" {
     condition = (
       var.runtime_platform == null ||
       try(var.runtime_platform.operating_system_family, null) == null ||
-      contains(["LINUX"], upper(var.runtime_platform.operating_system_family))
+      try(contains(["LINUX"], upper(var.runtime_platform.operating_system_family)), true)
     )
     error_message = "If provided, runtime_platform.operating_system_family must be LINUX in v1."
   }
@@ -224,7 +224,7 @@ variable "runtime_platform" {
     condition = (
       var.runtime_platform == null ||
       try(var.runtime_platform.cpu_architecture, null) == null ||
-      contains(["X86_64", "ARM64"], upper(var.runtime_platform.cpu_architecture))
+      try(contains(["X86_64", "ARM64"], upper(var.runtime_platform.cpu_architecture)), true)
     )
     error_message = "If provided, runtime_platform.cpu_architecture must be X86_64 or ARM64."
   }
@@ -238,7 +238,7 @@ variable "ephemeral_storage_gib" {
   validation {
     condition = (
       var.ephemeral_storage_gib == null ||
-      (var.ephemeral_storage_gib >= 21 && var.ephemeral_storage_gib <= 200)
+      try(var.ephemeral_storage_gib >= 21 && var.ephemeral_storage_gib <= 200, true)
     )
     error_message = "ephemeral_storage_gib must be null or between 21 and 200."
   }
@@ -320,7 +320,7 @@ variable "container" {
   validation {
     condition = (
       try(var.container.health_check, null) == null ||
-      length(var.container.health_check.command) > 0
+      try(length(var.container.health_check.command) > 0, true)
     )
     error_message = "If provided, container.health_check.command must contain at least one item."
   }
@@ -347,7 +347,7 @@ variable "log_group_name" {
   default     = null
 
   validation {
-    condition     = var.log_group_name == null || length(trimspace(var.log_group_name)) > 0
+    condition     = var.log_group_name == null || length(trimspace(coalesce(var.log_group_name, ""))) > 0
     error_message = "log_group_name must be null or a non-empty string."
   }
 }
@@ -403,7 +403,7 @@ variable "permissions_boundary_arn" {
   validation {
     condition = (
       var.permissions_boundary_arn == null ||
-      length(trimspace(var.permissions_boundary_arn)) > 0
+      length(trimspace(coalesce(var.permissions_boundary_arn, ""))) > 0
     )
     error_message = "permissions_boundary_arn must be null or a non-empty ARN string."
   }
