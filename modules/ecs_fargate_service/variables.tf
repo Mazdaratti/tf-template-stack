@@ -469,7 +469,7 @@ variable "load_balancer" {
     condition = (
       var.load_balancer == null ||
       try(var.load_balancer.container_port, null) == null ||
-      (var.load_balancer.container_port >= 1 && var.load_balancer.container_port <= 65535)
+      try(var.load_balancer.container_port >= 1 && var.load_balancer.container_port <= 65535, true)
     )
     error_message = "If provided, load_balancer.container_port must be between 1 and 65535."
   }
