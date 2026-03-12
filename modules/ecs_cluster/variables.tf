@@ -103,7 +103,7 @@ variable "default_capacity_provider_strategy" {
   validation {
     condition = (
       var.default_capacity_provider_strategy == null ||
-      length(var.default_capacity_provider_strategy) > 0
+      try(length(var.default_capacity_provider_strategy) > 0, true)
     )
     error_message = "default_capacity_provider_strategy must be null or a non-empty list."
   }
@@ -111,10 +111,10 @@ variable "default_capacity_provider_strategy" {
   validation {
     condition = (
       var.default_capacity_provider_strategy == null ||
-      alltrue([
+      try(alltrue([
         for s in var.default_capacity_provider_strategy :
         length(trimspace(s.capacity_provider)) > 0
-      ])
+      ]), true)
     )
     error_message = "Each strategy.capacity_provider must be a non-empty string."
   }
@@ -122,7 +122,7 @@ variable "default_capacity_provider_strategy" {
   validation {
     condition = (
       var.default_capacity_provider_strategy == null ||
-      alltrue([for s in var.default_capacity_provider_strategy : s.weight >= 0])
+      try(alltrue([for s in var.default_capacity_provider_strategy : s.weight >= 0]), true)
     )
     error_message = "Each strategy.weight must be >= 0."
   }
@@ -130,10 +130,10 @@ variable "default_capacity_provider_strategy" {
   validation {
     condition = (
       var.default_capacity_provider_strategy == null ||
-      alltrue([
+      try(alltrue([
         for s in var.default_capacity_provider_strategy :
         s.base == null || s.base >= 0
-      ])
+      ]), true)
     )
     error_message = "If provided, each strategy.base must be >= 0."
   }
@@ -178,7 +178,7 @@ variable "exec_cloudwatch_log_group_name" {
   default     = null
 
   validation {
-    condition     = var.exec_cloudwatch_log_group_name == null || length(trimspace(var.exec_cloudwatch_log_group_name)) > 0
+    condition     = var.exec_cloudwatch_log_group_name == null || length(trimspace(coalesce(var.exec_cloudwatch_log_group_name, ""))) > 0
     error_message = "exec_cloudwatch_log_group_name must be null or a non-empty string."
   }
 }
