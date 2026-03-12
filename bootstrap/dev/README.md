@@ -9,7 +9,7 @@ It provisions prerequisites needed before you can deploy real infrastructure via
   - DynamoDB table for state locking
 - **GitHub Actions OIDC authentication**
   - OIDC provider for GitHub
-  - IAM role that GitHub Actions can assume (main branch only)
+  - IAM role that GitHub Actions deployment workflows can assume (main branch only)
 
 It also **generates `envs/dev/backend.tf` automatically** after apply, so you don’t need to create the backend configuration manually.
 
@@ -20,32 +20,40 @@ It also **generates `envs/dev/backend.tf` automatically** after apply, so you do
 Run this stack when you:
 - create a new AWS account / new environment
 - set up a new infrastructure project
-- want CI/CD (GitHub Actions) to provision infrastructure using Terraform
+- want GitHub Actions deployment workflows to provision infrastructure using Terraform
 
 You typically run it **once**, and only update it if you change backend or IAM/OIDC settings.
 
 ---
 
-## GitHub Actions OIDC (default security model)
+## GitHub Actions OIDC (hardened deployment model)
 
 This stack creates an IAM role for GitHub Actions:
 
 - ✅ Trust is restricted to **your repo + `main` branch**
-- ✅ By default, permissions allow only:
+- ✅ By default, permissions are separated into:
   - Terraform state bucket access (S3)
   - Terraform lock table access (DynamoDB)
+  - deploy permissions for the currently implemented `envs/dev` infrastructure
+- ✅ Optional repo-aligned permissions boundary can be attached to the role as a guardrail
 
-### Optional: broad permissions for prototyping
-If you want Terraform to create AWS resources during early development, you can temporarily enable:
+Important boundary:
+
+- bootstrap remains **manual**
+- the GitHub Actions role is intended for **deployment workflows**, not CI validation
+- the validation workflow added in the repository does **not** assume this role
+
+### Legacy admin escape hatch
+If you want broad permissions during early prototyping, you can temporarily enable:
 
 - `attach_admin_policy = true`
 
-⚠️ This attaches `AdministratorAccess`. Use it for quick prototyping only, then replace it later with least-privilege policies per service/module.
+⚠️ This attaches `AdministratorAccess`. It is kept only as a legacy/prototyping escape hatch and is **not** part of the hardened recommended path.
 
-### Example permissions boundary (starter)
-This stack can also create a **starter permissions boundary** (example guardrail) for the GitHub Actions role.
+### Permissions boundary
+This stack can also create a **repo-aligned permissions boundary** for the GitHub Actions role.
 
-This is meant as an educational baseline — real organizations usually use stronger, centrally-managed IAM guardrails.
+This boundary is intended as a practical guardrail for this repository's current IAM model. It is still not a substitute for centrally managed organization-wide guardrails in a larger environment.
 
 ---
 
@@ -53,11 +61,36 @@ This is meant as an educational baseline — real organizations usually use stro
 
 ```sh
 cd bootstrap/dev
+cp terraform.tfvars.example terraform.tfvars
+```
+Edit terraform.tfvars and set the required values
+At minimum, set:
+
+- `project_name`
+- `github_org`
+- `github_repo`
+
+Optional values such as `github_branch`, naming overrides, and guardrail toggles can then be adjusted as needed.
+
+After values are set run:
+
+```sh
 terraform init
 terraform apply
-
-
 ```
+
+After bootstrap is applied:
+
+- `envs/dev/backend.tf` is generated automatically
+- the GitHub Actions deployment role ARN is available as an output
+- future deployment workflows can use OIDC to assume the role
+
+The current recommended sequence is:
+
+1. run bootstrap manually
+2. deploy infrastructure from `envs/dev`
+3. use GitHub Actions CI for validation only
+4. use the OIDC role later for deployment automation
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -73,8 +106,8 @@ terraform apply
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.28.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.6.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.36.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.7.0 |
 
 ## Modules
 
@@ -88,11 +121,14 @@ terraform apply
 |------|------|
 | [aws_iam_openid_connect_provider.github](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
 | [aws_iam_policy.github_actions_boundary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.github_actions_deploy_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.github_actions_state_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy_attachment.github_actions_admin](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy_attachment) | resource |
 | [aws_iam_role.github_actions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.github_actions_deploy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.github_actions_state](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [local_file.backend_config](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [aws_iam_policy_document.github_actions_deploy_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.github_actions_state_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.github_assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
@@ -100,12 +136,12 @@ terraform apply
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_attach_admin_policy"></a> [attach\_admin\_policy](#input\_attach\_admin\_policy) | Whether to attach AWS managed AdministratorAccess policy to the GitHub Actions role (broad permissions). | `bool` | `false` | no |
+| <a name="input_attach_admin_policy"></a> [attach\_admin\_policy](#input\_attach\_admin\_policy) | Legacy prototyping-only escape hatch. If true, attach AWS managed AdministratorAccess to the GitHub Actions role. Keep disabled for the hardened deployment model. | `bool` | `false` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region where bootstrap resources will be created. | `string` | `"eu-central-1"` | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags applied to resources. | `map(string)` | `{}` | no |
-| <a name="input_create_permissions_boundary"></a> [create\_permissions\_boundary](#input\_create\_permissions\_boundary) | If true, create and attach an example permissions boundary to the role. Recommend true as a guardrail example | `bool` | `true` | no |
+| <a name="input_create_permissions_boundary"></a> [create\_permissions\_boundary](#input\_create\_permissions\_boundary) | If true, create and attach the repo-aligned permissions boundary to the GitHub Actions role. | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev/stage/prod). Used for naming and for writing env backend.tf. | `string` | `"dev"` | no |
-| <a name="input_github_branch"></a> [github\_branch](#input\_github\_branch) | GitHub branch name allowed to assume the role. | `string` | `"main"` | no |
+| <a name="input_github_branch"></a> [github\_branch](#input\_github\_branch) | GitHub branch name allowed to assume the GitHub Actions deploy role. | `string` | `"main"` | no |
 | <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization/user name that owns the repository. | `string` | n/a | yes |
 | <a name="input_github_repo"></a> [github\_repo](#input\_github\_repo) | GitHub repository name. | `string` | n/a | yes |
 | <a name="input_lock_table_name"></a> [lock\_table\_name](#input\_lock\_table\_name) | Optional override for the Terraform lock DynamoDB table name. | `string` | `null` | no |

@@ -44,19 +44,19 @@ variable "github_repo" {
 }
 
 variable "github_branch" {
-  description = "GitHub branch name allowed to assume the role."
+  description = "GitHub branch name allowed to assume the GitHub Actions deploy role."
   type        = string
   default     = "main"
 }
 
 variable "attach_admin_policy" {
-  description = "Whether to attach AWS managed AdministratorAccess policy to the GitHub Actions role (broad permissions)."
+  description = "Legacy prototyping-only escape hatch. If true, attach AWS managed AdministratorAccess to the GitHub Actions role. Keep disabled for the hardened deployment model."
   type        = bool
   default     = false
 }
 
 variable "create_permissions_boundary" {
-  description = "If true, create and attach an example permissions boundary to the role. Recommend true as a guardrail example"
+  description = "If true, create and attach the repo-aligned permissions boundary to the GitHub Actions role."
   type        = bool
   default     = true
 }
