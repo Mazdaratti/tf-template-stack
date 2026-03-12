@@ -31,11 +31,11 @@ data "aws_iam_policy_document" "github_assume_role" {
 
     condition {
       test     = "StringEquals"
-      variable = "tocken.actions.githubusercontent.com:aud"
+      variable = "token.actions.githubusercontent.com:aud"
       values   = ["sts.amazonaws.com"]
     }
 
-    # Main branch restriction (or whatever branch is set to)
+    # Restrict role assumption to the configured repository branch.
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
