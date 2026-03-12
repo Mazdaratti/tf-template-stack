@@ -70,7 +70,7 @@ variable "name" {
   default     = null
 
   validation {
-    condition     = var.name == null || length(trimspace(coalesce(var.name, ""))) > 0
+    condition     = var.name == null ? true : length(trimspace(var.name)) > 0
     error_message = "name must be null or a non-empty string."
   }
 }
