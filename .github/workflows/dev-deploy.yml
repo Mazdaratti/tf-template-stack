@@ -1,0 +1,138 @@
+name: Deploy Dev Environment
+
+on:
+  # Manual-only in v1.
+  # This avoids accidental infrastructure mutation and keeps
+  # the first deployment workflow intentionally conservative.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Required for GitHub OIDC -> AWS role assumption.
+  id-token: write
+
+jobs:
+  deploy-dev:
+    name: Deploy envs/dev
+    runs-on: ubuntu-latest
+    # Use the GitHub Environment so deployment-specific variables
+    # and future approval rules stay scoped to dev.
+    environment: dev
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: envs/dev
+
+    env:
+      # Non-secret deployment configuration comes from the GitHub
+      # Environment named "dev".
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
+      TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
+      TF_BACKEND_DYNAMODB_TABLE: ${{ vars.TF_BACKEND_DYNAMODB_TABLE }}
+      TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+      TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+      TF_VAR_vpc_cidr: ${{ vars.TF_VAR_vpc_cidr }}
+      TF_VAR_ecs_service_image_uri: ${{ vars.TF_VAR_ecs_service_image_uri }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.6.6
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Generate backend configuration
+        run: |
+          # backend.tf is intentionally generated in CI/CD because
+          # bootstrap creates the backend values, but the generated
+          # file itself is not committed to the repository.
+          cat > backend.tf <<EOF
+          terraform {
+            backend "s3" {
+              bucket         = "${TF_BACKEND_BUCKET}"
+              key            = "${TF_BACKEND_KEY}"
+              region         = "${AWS_REGION}"
+              dynamodb_table = "${TF_BACKEND_DYNAMODB_TABLE}"
+              encrypt        = true
+            }
+          }
+          EOF
+
+      - name: Generate dev tfvars
+        run: |
+          # dev.tfvars is generated at runtime so deployment inputs
+          # come from GitHub Environment variables rather than a
+          # committed environment file.
+          cat > dev.tfvars <<EOF
+          project_name          = "${TF_VAR_project_name}"
+          environment           = "dev"
+          aws_region            = "${AWS_REGION}"
+          vpc_cidr              = "${TF_VAR_vpc_cidr}"
+          ecs_service_image_uri = "${TF_VAR_ecs_service_image_uri}"
+          EOF
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Terraform plan
+        run: terraform plan -input=false -var-file=dev.tfvars -no-color
+
+      - name: Terraform apply
+        run: terraform apply -input=false -auto-approve -var-file=dev.tfvars -no-color
+
+      - name: Capture deployment outputs
+        run: |
+          # Terraform outputs are used for smoke checks so the workflow
+          # verifies the actual deployed resource identities instead of
+          # guessing names or reconstructing ARNs manually.
+          {
+            echo "ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)"
+            echo "ECS_SERVICE_NAME=$(terraform output -raw ecs_service_name)"
+            echo "TARGET_GROUP_ARN=$(terraform output -json alb_ingress_target_group_arns | jq -er '.app')"
+          } >> "$GITHUB_ENV"
+
+      - name: Wait for ECS service stability
+        run: |
+          # The runner cannot reach the internal ALB directly, so the
+          # first smoke check uses ECS-native readiness.
+          aws ecs wait services-stable \
+            --cluster "${ECS_CLUSTER_NAME}" \
+            --services "${ECS_SERVICE_NAME}"
+
+      - name: Describe ECS service
+        run: |
+          # Keep the service description in the logs so failures are
+          # easier to debug without rerunning the deployment blindly.
+          aws ecs describe-services \
+            --cluster "${ECS_CLUSTER_NAME}" \
+            --services "${ECS_SERVICE_NAME}"
+
+      - name: Verify target group health
+        run: |
+          # Second smoke check: confirm the ALB target group sees at
+          # least one healthy target after the deployment finishes.
+          HEALTHY_COUNT=$(aws elbv2 describe-target-health \
+            --target-group-arn "${TARGET_GROUP_ARN}" \
+            --query 'length(TargetHealthDescriptions[?TargetHealth.State==`healthy`])' \
+            --output text)
+
+          echo "Healthy target count: ${HEALTHY_COUNT}"
+
+          if [ "${HEALTHY_COUNT}" -lt 1 ]; then
+            echo "No healthy targets found in target group ${TARGET_GROUP_ARN}" >&2
+            exit 1
+          fi
