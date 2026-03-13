@@ -1,6 +1,7 @@
 name: Terraform Validation
 
 on:
+  # Manual trigger is useful when iterating on the workflow itself.
   workflow_dispatch:
   pull_request:
   push:
@@ -26,6 +27,8 @@ jobs:
           terraform_wrapper: false
 
       - name: Check Terraform formatting
+        # Run one repo-wide formatting check because fmt is not tied
+        # to a specific Terraform root.
         run: terraform fmt -check -recursive
 
   terraform-validate-and-lint:
@@ -36,6 +39,8 @@ jobs:
       fail-fast: false
       matrix:
         directory:
+          # Explicit matrix keeps CI focused on real Terraform roots
+          # that are currently implemented in this repository.
           - bootstrap/dev
           - envs/dev
           - modules/network
@@ -56,6 +61,11 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ matrix.directory }}
+
+    env:
+      # Authenticated plugin init avoids GitHub API/rate-limit issues
+      # when many matrix jobs initialize TFLint in parallel.
+      GITHUB_TOKEN: ${{ github.token }}
 
     steps:
       - name: Checkout repository
@@ -80,6 +90,8 @@ jobs:
         run: tflint --version
 
       - name: Terraform init (backend disabled)
+        # CI validates code structure only. Using -backend=false keeps
+        # validation detached from real remote state and AWS access.
         run: terraform init -backend=false -input=false
 
       - name: Terraform validate
@@ -87,8 +99,8 @@ jobs:
 
       - name: Initialize TFLint
         run: tflint --init
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run TFLint
+        # TFLint runs per Terraform root after init so provider/module
+        # context is already available for static analysis.
         run: tflint
