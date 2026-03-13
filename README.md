@@ -177,6 +177,45 @@ The GitHub Actions OIDC role created by `bootstrap/dev` is reserved for future d
 
 ---
 
+## GitHub Actions deployment workflow
+
+The repository now also includes a separate manual deployment workflow for `envs/dev`.
+
+Why this workflow is separate from CI:
+
+- CI validates Terraform code only
+- deployment uses the hardened GitHub OIDC role from `bootstrap/dev`
+- deployment operates against the real remote backend
+- deployment mutates real infrastructure
+
+Current deployment model:
+
+- manual trigger only (`workflow_dispatch`)
+- targets `envs/dev` only
+- generates `backend.tf` and `dev.tfvars` inside the workflow
+- uses OIDC to assume the AWS deployment role
+- runs Terraform `init`, `validate`, `plan`, and `apply`
+- performs AWS-native smoke checks after apply:
+  - ECS service stability
+  - ALB target group health
+
+Important:
+
+- bootstrap must be run first
+- after bootstrap, use its outputs to populate the required GitHub Environment `dev` variables for this repository
+- the deployment workflow reads those GitHub Environment variables and regenerates `envs/dev/backend.tf` and `envs/dev/dev.tfvars` during execution
+- the internal ALB is not reachable from GitHub-hosted runners
+- smoke checks therefore use AWS service state instead of HTTP requests from the runner
+
+Recommended sequence:
+
+1. run `bootstrap/dev` manually
+2. collect the backend and deploy-role values from bootstrap outputs
+3. store them as GitHub Environment `dev` variables in this repository
+4. manually trigger the `envs/dev` deployment workflow
+
+---
+
 ## Design principles
 
 - keep environments thin
