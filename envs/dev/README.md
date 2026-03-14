@@ -29,7 +29,7 @@ Instead:
    * create the S3 state bucket
    * create the DynamoDB lock table
    * generate `envs/dev/backend.tf` automatically
-   * create the GitHub Actions deployment role used later for deployment automation
+   * create the GitHub Actions deployment role and configure OIDC trust used later for deployment automation
 
 `backend.tf` is treated as a **generated artifact**.
 
@@ -76,7 +76,7 @@ The dev environment is composed of reusable modules.
 
 Each section below corresponds to **one module block in `main.tf`**.
 
-New infrastructure is added by appending additional module blocks.
+New infrastructure is added by appending additional module blocks to `main.tf`.
 
 ---
 
@@ -121,7 +121,7 @@ This structure keeps responsibilities separated:
 * ingress modules provide shared load balancing
 * workload modules attach application services onto the shared platform baseline
 
-The current ECS layer is now split into:
+The current ECS layer is split into:
 
 * `ecs_cluster` for the cluster foundation
 * `ecs_fargate_service` for service-level resources such as:
@@ -496,7 +496,7 @@ Current dev baseline characteristics:
 
 * runs in private subnets
 * does not assign public IPs
-* attaches to the shared ALB target group
+* attaches to the shared ALB ingress target group created by `alb_ingress`
 * allows ingress only from the ALB security group
 * creates a dedicated service security group
 * creates a dedicated CloudWatch Log Group encrypted with the shared logs KMS key
@@ -579,7 +579,7 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 ## Usage
 
 If not already done:
-> Run `bootstrap/dev` first to generate `backend.tf` and provision the GitHub Actions deployment role. The CI validation workflow does not use that role.
+> Run `bootstrap/dev` first to generate `backend.tf` and provision the GitHub Actions deployment role. This step must be executed once per AWS account. The CI validation workflow does not use that role.
 
 Run the following commands from inside `envs/dev/`.
 
@@ -588,6 +588,69 @@ terraform init
 terraform plan -var-file=dev.tfvars
 terraform apply -var-file=dev.tfvars
 ```
+
+---
+
+## GitHub Actions deployment prerequisites
+
+The repository includes a manual GitHub Actions deployment workflow for `envs/dev`.
+
+Before using that workflow:
+
+1. run `bootstrap/dev` manually
+2. collect the required backend and deploy-role values from bootstrap outputs
+3. store them in the GitHub Environment named `dev`
+
+Recommended GitHub Environment `dev` variables:
+
+- `AWS_ROLE_TO_ASSUME`
+- `AWS_REGION`
+- `TF_BACKEND_BUCKET`
+- `TF_BACKEND_DYNAMODB_TABLE`
+- `TF_BACKEND_KEY`
+- `TF_VAR_project_name`
+- `TF_VAR_vpc_cidr`
+- `TF_VAR_ecs_service_image_uri`
+
+Recommended values:
+
+- `TF_BACKEND_KEY = envs/dev/terraform.tfstate`
+- `TF_VAR_ecs_service_image_uri = nginx:stable-alpine`
+
+The GitHub Actions deployment workflow does not use the local `dev.tfvars` file.
+It generates a temporary configuration during execution based on GitHub Environment variables.
+
+The deployment workflow then:
+
+- regenerates `backend.tf`
+- regenerates `dev.tfvars`
+- runs Terraform `init`, `validate`, `plan`, and `apply`
+- waits for ECS service stability
+- verifies ALB target group health through AWS APIs
+
+Why no HTTP smoke test from GitHub Actions?
+
+- the ALB in `envs/dev` is internal/private
+- GitHub-hosted runners are outside the VPC
+- the workflow therefore uses ECS service state and target group health as the v1 smoke-test baseline
+
+---
+
+## Cost considerations (important)
+
+This dev environment creates resources that incur hourly charges:
+
+- NAT Gateway
+- Application Load Balancer
+- ECS Fargate tasks
+
+Even when traffic is low, these resources may generate costs.
+
+To avoid unexpected charges:
+
+- destroy the environment when not actively testing
+- configure AWS Budgets alerts
+- prefer `single` NAT mode in dev
 ---
 
 <!-- BEGIN_TF_DOCS -->
