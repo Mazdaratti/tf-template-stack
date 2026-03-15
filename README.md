@@ -126,12 +126,12 @@ This ordering reflects the current implementation path and keeps foundational in
 
 Start with the `dev` environment.
 
-1. Run `bootstrap/dev` using `bootstrap/dev/readme.md` first to:
+1. Run `bootstrap/dev` using `bootstrap/dev/README.md` first to:
    - create the remote backend
    - generate `envs/dev/backend.tf`
    - create the GitHub Actions deployment role used for later deployment automation
-2. Copy `envs/dev/dev.tfvars.example` to `dev.tfvars`
-3. Set the required values, including the ECS workload image URI
+2. Review `envs/dev/dev.tfvars` and adjust any non-secret desired-state values you want to change
+3. Keep backend/auth wiring out of `dev.tfvars`; those stay in bootstrap outputs and GitHub Environment variables
 4. Deploy from inside `envs/dev/`:
 
 ```shell
@@ -174,6 +174,47 @@ It validates:
 This keeps CI detached from remote state and AWS credentials while still verifying the real Terraform roots currently implemented in the repository.
 
 The GitHub Actions OIDC role created by `bootstrap/dev` is reserved for future deployment workflows and is not used by the CI validation workflow.
+
+---
+
+## GitHub Actions deployment workflow
+
+The repository now also includes a separate manual deployment workflow for `envs/dev`.
+
+Why this workflow is separate from CI:
+
+- CI validates Terraform code only
+- deployment uses the hardened GitHub OIDC role from `bootstrap/dev`
+- deployment operates against the real remote backend
+- deployment mutates real infrastructure
+
+Current deployment model:
+
+- manual trigger only (`workflow_dispatch`)
+- targets `envs/dev` only
+- generates `backend.tf` inside the workflow
+- uses the tracked `envs/dev/dev.tfvars` file as the shared desired-state source of truth
+- uses OIDC to assume the AWS deployment role
+- runs Terraform `init`, `validate`, `plan`, and `apply`
+- performs AWS-native smoke checks after apply:
+  - ECS service stability
+  - ALB target group health
+
+Important:
+
+- bootstrap must be run first
+- after bootstrap, use its outputs to populate the required GitHub Environment `dev` variables for this repository
+- the deployment workflow reads those GitHub Environment variables to regenerate `envs/dev/backend.tf` during execution
+- environment desired-state inputs stay in the tracked `envs/dev/dev.tfvars` file, which is shared by local Terraform runs and GitHub Actions deployments
+- the internal ALB is not reachable from GitHub-hosted runners
+- smoke checks therefore use AWS service state instead of HTTP requests from the runner
+
+Recommended sequence:
+
+1. run `bootstrap/dev` manually
+2. collect the backend and deploy-role values from bootstrap outputs
+3. store them as GitHub Environment `dev` variables in this repository
+4. manually trigger the `envs/dev` deployment workflow
 
 ---
 
