@@ -192,7 +192,8 @@ Current deployment model:
 
 - manual trigger only (`workflow_dispatch`)
 - targets `envs/dev` only
-- generates `backend.tf` and `dev.tfvars` inside the workflow
+- generates `backend.tf` inside the workflow
+- uses the tracked `envs/dev/dev.tfvars` file as the shared desired-state source of truth
 - uses OIDC to assume the AWS deployment role
 - runs Terraform `init`, `validate`, `plan`, and `apply`
 - performs AWS-native smoke checks after apply:
@@ -203,7 +204,8 @@ Important:
 
 - bootstrap must be run first
 - after bootstrap, use its outputs to populate the required GitHub Environment `dev` variables for this repository
-- the deployment workflow reads those GitHub Environment variables and regenerates `envs/dev/backend.tf` and `envs/dev/dev.tfvars` during execution
+- the deployment workflow reads those GitHub Environment variables to regenerate `envs/dev/backend.tf` during execution
+- environment desired-state inputs stay in the tracked `envs/dev/dev.tfvars` file, which is shared by local Terraform runs and GitHub Actions deployments
 - the internal ALB is not reachable from GitHub-hosted runners
 - smoke checks therefore use AWS service state instead of HTTP requests from the runner
 
