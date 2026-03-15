@@ -143,13 +143,18 @@ module "vpc_interface_endpoints" {
   # - envs/dev/security_groups.tf.example
 
 
-  # Endpoints baseline for private management access + common platform services.
+  # Keep only the endpoint that is exercised by the current dev stack.
+  #
+  # The ECS service writes container logs to CloudWatch Logs from private
+  # subnets, so `logs` is the only interface endpoint with a clear runtime
+  # use in this baseline.
+  #
+  # We intentionally do not enable the SSM trio or Secrets Manager here:
+  # - ECS Exec is disabled
+  # - no EC2/SSM-managed instance exists in the VPC
+  # - the current workload does not read from Secrets Manager
   interface_endpoints = {
-    ssm            = { enabled = true }
-    ssmmessages    = { enabled = true }
-    ec2messages    = { enabled = true }
-    logs           = { enabled = true }
-    secretsmanager = { enabled = true }
+    logs = { enabled = true }
   }
 
   # Optional: endpoint policies
