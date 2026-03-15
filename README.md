@@ -126,12 +126,12 @@ This ordering reflects the current implementation path and keeps foundational in
 
 Start with the `dev` environment.
 
-1. Run `bootstrap/dev` using `bootstrap/dev/readme.md` first to:
+1. Run `bootstrap/dev` using `bootstrap/dev/README.md` first to:
    - create the remote backend
    - generate `envs/dev/backend.tf`
    - create the GitHub Actions deployment role used for later deployment automation
-2. Copy `envs/dev/dev.tfvars.example` to `dev.tfvars`
-3. Set the required values, including the ECS workload image URI
+2. Review `envs/dev/dev.tfvars` and adjust any non-secret desired-state values you want to change
+3. Keep backend/auth wiring out of `dev.tfvars`; those stay in bootstrap outputs and GitHub Environment variables
 4. Deploy from inside `envs/dev/`:
 
 ```shell
