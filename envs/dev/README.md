@@ -42,11 +42,10 @@ Instead:
 
 ### Step 1 — Configure variables
 
-Copy the example file and adjust values:
+Review the tracked `dev.tfvars` file and adjust values as needed.
 
-```
-dev.tfvars.example → dev.tfvars
-```
+This file is intentionally committed because it contains only non-secret
+desired-state inputs for the `dev` environment.
 
 This environment supports two configuration styles:
 
@@ -191,20 +190,23 @@ Implemented via:
 
 * `modules/vpc_interface_endpoints`
 
-Typical baseline for private compute environments:
+Current dev baseline:
 
-* `ssm`
-* `ec2messages`
-* `ssmmessages`
 * `logs`
-* `secretsmanager`
 
 Key characteristics:
 
 * placed into **private subnets**
 * controlled via **security groups**
 * supports optional endpoint policies
-* enables fully private SSM-based access (no bastion required)
+* keeps private CloudWatch Logs access available to the ECS workload
+
+Why only `logs` in this environment?
+
+* the ECS service writes container logs to CloudWatch Logs from private subnets
+* ECS Exec is disabled in the current dev baseline
+* there is no SSM-managed instance in the VPC
+* the current workload does not read from Secrets Manager
 
 ---
 
@@ -554,7 +556,7 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 * `variables.tf` — environment-level inputs
 * `outputs.tf` — environment outputs
 * `data.tf` — shared AWS data sources (account identity, future region/partition)
-* `dev.tfvars.example` — documented variable examples
+* `dev.tfvars` — tracked non-secret desired-state inputs shared by local runs and GitHub Actions deployments
 * `backend.tf.example` — backend configuration example
 * `endpoint_policies.tf` — active VPC endpoint policy definitions (if used)
 * `endpoint_policies.tf.example` — endpoint policy templates (gateway + interface)
@@ -580,6 +582,8 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 
 If not already done:
 > Run `bootstrap/dev` first to generate `backend.tf` and provision the GitHub Actions deployment role. This step must be executed once per AWS account. The CI validation workflow does not use that role.
+
+Then review `dev.tfvars` and adjust any non-secret environment inputs you want to change before deployment.
 
 Run the following commands from inside `envs/dev/`.
 
@@ -608,22 +612,24 @@ Recommended GitHub Environment `dev` variables:
 - `TF_BACKEND_BUCKET`
 - `TF_BACKEND_DYNAMODB_TABLE`
 - `TF_BACKEND_KEY`
-- `TF_VAR_project_name`
-- `TF_VAR_vpc_cidr`
-- `TF_VAR_ecs_service_image_uri`
 
 Recommended values:
 
 - `TF_BACKEND_KEY = envs/dev/terraform.tfstate`
-- `TF_VAR_ecs_service_image_uri = nginx:stable-alpine`
 
-The GitHub Actions deployment workflow does not use the local `dev.tfvars` file.
-It generates a temporary configuration during execution based on GitHub Environment variables.
+The GitHub Actions deployment workflow uses the tracked `dev.tfvars` file from this folder.
+It does not generate a separate temporary env configuration at runtime.
+
+That means both:
+
+- local Terraform runs
+- GitHub Actions deployments
+
+use the same non-secret desired-state inputs.
 
 The deployment workflow then:
 
 - regenerates `backend.tf`
-- regenerates `dev.tfvars`
 - runs Terraform `init`, `validate`, `plan`, and `apply`
 - waits for ECS service stability
 - verifies ALB target group health through AWS APIs
@@ -667,7 +673,7 @@ To avoid unexpected charges:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.35.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.36.0 |
 
 ## Modules
 
@@ -701,6 +707,9 @@ To avoid unexpected charges:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_ecs_service_image_uri"></a> [ecs\_service\_image\_uri](#input\_ecs\_service\_image\_uri) | Container image URI for the dev ECS Fargate service.<br/><br/>This is the only workload-specific input exposed at the env layer in v1.<br/>Service sizing, port, subnet placement, logging, and ALB integration stay<br/>opinionated in envs/dev to keep the baseline small and predictable. | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"eu-central-1"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | The number of availability zones to use if explicit AZ list is not provided (module will pick the first N AZs in region). | `number` | `2` | no |
 | <a name="input_azs"></a> [azs](#input\_azs) | Optional explicit list of availability zones to use. If set, az\_count is ignored. | `list(string)` | `null` | no |
@@ -709,7 +718,6 @@ To avoid unexpected charges:
 | <a name="input_create_public_subnets"></a> [create\_public\_subnets](#input\_create\_public\_subnets) | Whether to create public subnets and public routing (IGW + public route table). | `bool` | `true` | no |
 | <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name) | Optional ECS cluster name override. If null, module default naming is used. | `string` | `null` | no |
 | <a name="input_ecs_enable_container_insights"></a> [ecs\_enable\_container\_insights](#input\_ecs\_enable\_container\_insights) | Whether to enable ECS Container Insights for the dev cluster baseline. | `bool` | `true` | no |
-| <a name="input_ecs_service_image_uri"></a> [ecs\_service\_image\_uri](#input\_ecs\_service\_image\_uri) | Container image URI for the dev ECS Fargate service.<br/><br/>This is the only workload-specific input exposed at the env layer in v1.<br/>Service sizing, port, subnet placement, logging, and ALB integration stay<br/>opinionated in envs/dev to keep the baseline small and predictable. | `string` | n/a | yes |
 | <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Whether instances in the VPC get DNS hostnames. | `bool` | `true` | no |
 | <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Whether DNS resolution is supported for the VPC. | `bool` | `true` | no |
 | <a name="input_enable_nat_gateway"></a> [enable\_nat\_gateway](#input\_enable\_nat\_gateway) | Whether to create NAT Gateway resources for private outbound internet access. | `bool` | `true` | no |
@@ -720,10 +728,8 @@ To avoid unexpected charges:
 | <a name="input_nat_reuse_eip_allocation_ids"></a> [nat\_reuse\_eip\_allocation\_ids](#input\_nat\_reuse\_eip\_allocation\_ids) | Optional list of existing EIP allocation IDs to reuse. If null, the module creates new EIPs. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | Optional explicit list of CIDR blocks for private subnets. If set, private\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_count"></a> [private\_subnet\_count](#input\_private\_subnet\_count) | Number of private subnets to create if explicit private CIDRs are not provided. | `number` | `2` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
 | <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | Optional explicit list of CIDR blocks for public subnets. If set, public\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_public_subnet_count"></a> [public\_subnet\_count](#input\_public\_subnet\_count) | Number of public subnets to create if explicit public CIDRs are not provided. | `number` | `2` | no |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 
 ## Outputs
 
