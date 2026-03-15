@@ -18,6 +18,12 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 
+# Tracked environment baseline for dev deployment workflow.
+# This file intentionally contains ONLY non-secret desired-state inputs.
+# It is the single source of truth for both local Terraform runs
+# and GitHub Actions deployments.
+!envs/dev/dev.tfvars
+
 # Ignore override files, as they are usually used to override resources locally
 override.tf
 override.tf.json
