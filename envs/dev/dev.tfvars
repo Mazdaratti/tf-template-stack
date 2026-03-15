@@ -100,12 +100,3 @@ nat_create_routes = true
 
 # Optional: reuse existing EIP allocation IDs
 nat_reuse_eip_allocation_ids = null
-
-############################################
-# VPC Gateway Endpoints (S3, DynamoDB)
-############################################
-
-gateway_endpoints = {
-  s3       = true
-  dynamodb = true
-}
