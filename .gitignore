@@ -61,3 +61,7 @@ envs/*/backend.tf
 
 # Logs
 *.log
+
+# Python cache artifacts
+__pycache__/
+*.pyc
