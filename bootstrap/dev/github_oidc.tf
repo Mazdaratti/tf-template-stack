@@ -46,10 +46,10 @@ data "aws_iam_policy_document" "github_assume_role" {
 
 resource "aws_iam_role" "github_actions" {
   name               = "gh-oidc-${var.project_name}-${var.environment}"
-  assume_role_policy = data.aws_iam_policy_document.github_assume_role
+  assume_role_policy = data.aws_iam_policy_document.github_assume_role.json
 
   # Attach permissions boundary only if we create it (see policy_boundary.tf)
-  permissions_boundary = var.create_permissions_boundary ? aws_iam_policy.github_actions_boundary[0] : null
+  permissions_boundary = var.create_permissions_boundary ? aws_iam_policy.github_actions_boundary[0].arn : null
 
   tags = merge(var.common_tags, {
     Project     = var.project_name
