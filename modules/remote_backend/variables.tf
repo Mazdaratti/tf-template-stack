@@ -25,15 +25,3 @@ variable "lock_table_name" {
   type        = string
   default     = null
 }
-
-variable "prevent_destroy" {
-  description = "Whether to protect the backend S3 bucket and DynamoDB lock table from Terraform destroy. Keep true for production-safe behavior unless a caller explicitly opts out."
-  type        = bool
-  default     = true
-}
-
-variable "state_bucket_force_destroy" {
-  description = "Whether to allow Terraform to delete the backend state bucket even if it still contains objects. Keep false by default and enable only for teardown-friendly dev workflows."
-  type        = bool
-  default     = false
-}
