@@ -3,6 +3,16 @@ output "tf_state_bucket_name" {
   value       = module.remote_backend.state_bucket_name
 }
 
+output "tf_backend_key" {
+  description = "Canonical backend state key used for the target environment."
+  value       = local.tf_backend_key
+}
+
+output "aws_region" {
+  description = "AWS region used for bootstrap resources and generated backend configuration."
+  value       = var.aws_region
+}
+
 output "tf_state_bucket_arn" {
   description = "ARN of the S3 bucket used for Terraform state."
   value       = module.remote_backend.state_bucket_arn

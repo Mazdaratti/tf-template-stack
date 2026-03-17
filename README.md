@@ -144,6 +144,52 @@ For the detailed environment walkthrough, see `envs/dev/README.md`.
 
 ---
 
+## Tooling prerequisites
+
+### Core local operator tools
+
+These are the tools a real operator of this repository should have installed locally:
+
+- `git`
+- `terraform`
+- `aws` CLI
+
+Why `aws` CLI belongs here:
+
+- bootstrap is applied locally against a real AWS account
+- local Terraform runs require AWS credentials configured for the target account
+- troubleshooting live infrastructure is much easier with AWS CLI access
+
+### Validation and documentation tools
+
+These are recommended when maintaining the repository itself:
+
+- `tflint`
+- `terraform-docs`
+
+### GitHub environment sync helper
+
+The local GitHub Environment sync helper requires:
+
+- `python3`
+- `gh`
+
+The helper script is:
+
+- `python scripts/sync_github_env.py dev`
+
+It reads `bootstrap/dev` Terraform outputs and syncs only deployment wiring values into GitHub Environment `dev`.
+It does not manage Terraform desired-state inputs such as `TF_VAR_*`.
+
+### Authentication / configuration prerequisites
+
+Before running bootstrap, local Terraform applies, or the GitHub Environment sync helper, make sure:
+
+- AWS credentials are configured locally for the target account
+- `gh auth login` has been completed for the target repository
+
+---
+
 ## Validation and quality workflow
 
 Recommended checks before merge:
@@ -212,8 +258,13 @@ Important:
 Recommended sequence:
 
 1. run `bootstrap/dev` manually
-2. collect the backend and deploy-role values from bootstrap outputs
-3. store them as GitHub Environment `dev` variables in this repository
+2. sync bootstrap outputs into GitHub Environment `dev` variables for this repository:
+
+```shell
+python scripts/sync_github_env.py dev
+```
+
+3. optionally review the GitHub Environment `dev` variables in the repository settings
 4. manually trigger the `envs/dev` deployment workflow
 
 ---

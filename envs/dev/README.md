@@ -602,8 +602,7 @@ The repository includes a manual GitHub Actions deployment workflow for `envs/de
 Before using that workflow:
 
 1. run `bootstrap/dev` manually
-2. collect the required backend and deploy-role values from bootstrap outputs
-3. store them in the GitHub Environment named `dev`
+2. sync the required backend and deploy-role values into the GitHub Environment named `dev`
 
 Recommended GitHub Environment `dev` variables:
 
@@ -616,6 +615,24 @@ Recommended GitHub Environment `dev` variables:
 Recommended values:
 
 - `TF_BACKEND_KEY = envs/dev/terraform.tfstate`
+
+Run the sync helper from the repository root:
+
+```shell
+python scripts/sync_github_env.py dev
+```
+
+It requires these local tools:
+
+- `python3`
+- `git`
+- `terraform`
+- `gh`
+
+It also requires:
+
+- local AWS credentials configured for the target account
+- `gh auth login` completed for the target repository
 
 The GitHub Actions deployment workflow uses the tracked `dev.tfvars` file from this folder.
 It does not generate a separate temporary env configuration at runtime.
