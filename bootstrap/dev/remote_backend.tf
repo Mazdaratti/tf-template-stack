@@ -53,10 +53,6 @@ resource "aws_dynamodb_table" "terraform_lock" {
     type = "S"
   }
 
-  point_in_time_recovery {
-    enabled = true
-  }
-
   tags = merge(local.backend_merged_tags, {
     Name = "Terraform State Lock - ${var.environment}"
   })
