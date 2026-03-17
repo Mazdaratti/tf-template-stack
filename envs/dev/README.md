@@ -309,7 +309,7 @@ Implemented via:
 
 Current dev baseline:
 
-* `vpc_flow_logs` — shared log group intended for the upcoming `vpc_flow_logs` module
+* `vpc_flow_logs` — shared log group consumed by the `vpc_flow_logs` module
 
 Characteristics:
 
@@ -329,7 +329,7 @@ Why this exists:
 * separates log group creation from flow log configuration
 * enables consistent retention and encryption standards
 * keeps the environment thin
-* prepares the stack for the next module: `vpc_flow_logs`
+* prepares the stack for the `vpc_flow_logs` module
 
 This module establishes the logging primitives that other infrastructure components will consume.
 
@@ -581,9 +581,11 @@ Policies are **disabled by default** and only applied if explicitly enabled.
 ## Usage
 
 If not already done:
-> Run `bootstrap/dev` first to generate `backend.tf` and provision the GitHub Actions deployment role. This step must be executed once per AWS account. The CI validation workflow does not use that role.
+> Run `bootstrap/dev` first to generate `backend.tf` and provision the GitHub Actions deployment role. This step must be completed before `envs/dev` can use the remote backend and deployment workflow. In `dev`, the bootstrap stack can also be destroyed and recreated during validation. The CI validation workflow does not use that role.
 
 Then review `dev.tfvars` and adjust any non-secret environment inputs you want to change before deployment.
+
+Local commands below pass `-var-file=dev.tfvars` explicitly so the intended environment input file is always obvious.
 
 Run the following commands from inside `envs/dev/`.
 
@@ -595,32 +597,25 @@ terraform apply -var-file=dev.tfvars
 
 ---
 
-## GitHub Actions deployment prerequisites
+## GitHub Actions deployment flow
 
 The repository includes a manual GitHub Actions deployment workflow for `envs/dev`.
 
 Before using that workflow:
 
 1. run `bootstrap/dev` manually
-2. sync the required backend and deploy-role values into the GitHub Environment named `dev`
-
-Recommended GitHub Environment `dev` variables:
-
-- `AWS_ROLE_TO_ASSUME`
-- `AWS_REGION`
-- `TF_BACKEND_BUCKET`
-- `TF_BACKEND_DYNAMODB_TABLE`
-- `TF_BACKEND_KEY`
-
-Recommended values:
-
-- `TF_BACKEND_KEY = envs/dev/terraform.tfstate`
+2. run the GitHub Environment sync helper from the repository root
+3. verify that the GitHub Environment named `dev` contains the expected variables
 
 Run the sync helper from the repository root:
 
 ```shell
 python scripts/sync_github_env.py dev
 ```
+
+This helper reads bootstrap outputs from `bootstrap/dev` and writes only non-secret deployment wiring values required by the deployment workflow into GitHub Environment `dev`.
+
+It was validated against a real bootstrap apply using the current `dev` backend and OIDC role outputs.
 
 It requires these local tools:
 
@@ -634,8 +629,20 @@ It also requires:
 - local AWS credentials configured for the target account
 - `gh auth login` completed for the target repository
 
+Expected GitHub Environment `dev` variables:
+
+- `AWS_ROLE_TO_ASSUME`
+- `AWS_REGION`
+- `TF_BACKEND_BUCKET`
+- `TF_BACKEND_DYNAMODB_TABLE`
+- `TF_BACKEND_KEY`
+
+Recommended value:
+
+- `TF_BACKEND_KEY = envs/dev/terraform.tfstate`
+
 The GitHub Actions deployment workflow uses the tracked `dev.tfvars` file from this folder.
-It does not generate a separate temporary env configuration at runtime.
+It does not generate a separate temporary environment configuration at runtime.
 
 That means both:
 
@@ -644,18 +651,33 @@ That means both:
 
 use the same non-secret desired-state inputs.
 
-The deployment workflow then:
+### Workflow behavior
+
+The deployment workflow:
 
 - regenerates `backend.tf`
 - runs Terraform `init`, `validate`, `plan`, and `apply`
 - waits for ECS service stability
 - verifies ALB target group health through AWS APIs
 
-Why no HTTP smoke test from GitHub Actions?
+### Why no HTTP smoke test from GitHub Actions?
 
 - the ALB in `envs/dev` is internal/private
 - GitHub-hosted runners are outside the VPC
 - the workflow therefore uses ECS service state and target group health as the v1 smoke-test baseline
+
+### Destroy order
+
+When testing teardown:
+
+1. destroy infrastructure from `envs/dev` first
+2. destroy `bootstrap/dev` second
+
+If the bootstrap backend has already been destroyed accidentally, recreate `bootstrap/dev`, remove the existing `.terraform` directory and any cached backend configuration in `envs/dev`, and run `terraform init` again before continuing.
+
+### Example GitHub Environment wiring evidence
+
+![GitHub Environment dev variables](../../docs/screenshots/envs-dev/github-env-dev-variables.png)
 
 ---
 
@@ -724,9 +746,6 @@ To avoid unexpected charges:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_ecs_service_image_uri"></a> [ecs\_service\_image\_uri](#input\_ecs\_service\_image\_uri) | Container image URI for the dev ECS Fargate service.<br/><br/>This is the only workload-specific input exposed at the env layer in v1.<br/>Service sizing, port, subnet placement, logging, and ALB integration stay<br/>opinionated in envs/dev to keep the baseline small and predictable. | `string` | n/a | yes |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"eu-central-1"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | The number of availability zones to use if explicit AZ list is not provided (module will pick the first N AZs in region). | `number` | `2` | no |
 | <a name="input_azs"></a> [azs](#input\_azs) | Optional explicit list of availability zones to use. If set, az\_count is ignored. | `list(string)` | `null` | no |
@@ -735,6 +754,7 @@ To avoid unexpected charges:
 | <a name="input_create_public_subnets"></a> [create\_public\_subnets](#input\_create\_public\_subnets) | Whether to create public subnets and public routing (IGW + public route table). | `bool` | `true` | no |
 | <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name) | Optional ECS cluster name override. If null, module default naming is used. | `string` | `null` | no |
 | <a name="input_ecs_enable_container_insights"></a> [ecs\_enable\_container\_insights](#input\_ecs\_enable\_container\_insights) | Whether to enable ECS Container Insights for the dev cluster baseline. | `bool` | `true` | no |
+| <a name="input_ecs_service_image_uri"></a> [ecs\_service\_image\_uri](#input\_ecs\_service\_image\_uri) | Container image URI for the dev ECS Fargate service.<br/><br/>This is the only workload-specific input exposed at the env layer in v1.<br/>Service sizing, port, subnet placement, logging, and ALB integration stay<br/>opinionated in envs/dev to keep the baseline small and predictable. | `string` | n/a | yes |
 | <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Whether instances in the VPC get DNS hostnames. | `bool` | `true` | no |
 | <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Whether DNS resolution is supported for the VPC. | `bool` | `true` | no |
 | <a name="input_enable_nat_gateway"></a> [enable\_nat\_gateway](#input\_enable\_nat\_gateway) | Whether to create NAT Gateway resources for private outbound internet access. | `bool` | `true` | no |
@@ -745,8 +765,10 @@ To avoid unexpected charges:
 | <a name="input_nat_reuse_eip_allocation_ids"></a> [nat\_reuse\_eip\_allocation\_ids](#input\_nat\_reuse\_eip\_allocation\_ids) | Optional list of existing EIP allocation IDs to reuse. If null, the module creates new EIPs. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | Optional explicit list of CIDR blocks for private subnets. If set, private\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_private_subnet_count"></a> [private\_subnet\_count](#input\_private\_subnet\_count) | Number of private subnets to create if explicit private CIDRs are not provided. | `number` | `2` | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging across all modules. Must be unique across all projects in the account. | `string` | n/a | yes |
 | <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | Optional explicit list of CIDR blocks for public subnets. If set, public\_subnet\_count is ignored. | `list(string)` | `null` | no |
 | <a name="input_public_subnet_count"></a> [public\_subnet\_count](#input\_public\_subnet\_count) | Number of public subnets to create if explicit public CIDRs are not provided. | `number` | `2` | no |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC. | `string` | n/a | yes |
 
 ## Outputs
 

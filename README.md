@@ -77,7 +77,7 @@ This layered composition keeps responsibilities separated:
 
 - **envs/**: Environment root modules (`dev`, `stage`, `prod`). Each environment composes reusable modules.
 - **modules/**: Reusable Terraform modules shared across environments.
-- **bootstrap/**: One-time prerequisites such as remote state backend creation, generated backend configuration, and hardened GitHub Actions deploy-role setup via OIDC.
+- **bootstrap/**: Foundation infrastructure such as remote state backend creation, generated backend configuration, and hardened GitHub Actions deploy-role setup via OIDC. In `dev`, the bootstrap flow is also teardown-friendly for validation and recreation.
 
 ---
 
@@ -140,7 +140,10 @@ terraform plan -var-file=dev.tfvars
 terraform apply -var-file=dev.tfvars
 ```
 
-For the detailed environment walkthrough, see `envs/dev/README.md`.
+For the detailed walkthroughs, see:
+
+- `bootstrap/dev/README.md` for bootstrap setup, backend lifecycle, and validation evidence
+- `envs/dev/README.md` for environment deployment flow, GitHub Environment sync, and operator guidance
 
 ---
 
@@ -178,7 +181,7 @@ The helper script is:
 
 - `python scripts/sync_github_env.py dev`
 
-It reads `bootstrap/dev` Terraform outputs and syncs only deployment wiring values into GitHub Environment `dev`.
+It reads `bootstrap/dev` Terraform outputs and syncs only non-secret deployment wiring values into GitHub Environment `dev`.
 It does not manage Terraform desired-state inputs such as `TF_VAR_*`.
 
 ### Authentication / configuration prerequisites
@@ -249,7 +252,8 @@ Current deployment model:
 Important:
 
 - bootstrap must be run first
-- after bootstrap, use its outputs to populate the required GitHub Environment `dev` variables for this repository
+- after bootstrap, run the GitHub Environment sync helper:
+  `python scripts/sync_github_env.py dev`
 - the deployment workflow reads those GitHub Environment variables to regenerate `envs/dev/backend.tf` during execution
 - environment desired-state inputs stay in the tracked `envs/dev/dev.tfvars` file, which is shared by local Terraform runs and GitHub Actions deployments
 - the internal ALB is not reachable from GitHub-hosted runners
