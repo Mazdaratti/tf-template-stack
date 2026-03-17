@@ -11,8 +11,8 @@ data "aws_iam_policy_document" "github_actions_state_permissions" {
 
     ]
     resources = [
-      module.remote_backend.state_bucket_arn,
-      "${module.remote_backend.state_bucket_arn}/*"
+      aws_s3_bucket.terraform_state.arn,
+      "${aws_s3_bucket.terraform_state.arn}/*"
     ]
   }
 
@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "github_actions_state_permissions" {
       "dynamodb:UpdateItem",
     ]
     resources = [
-      module.remote_backend.lock_table_arn
+      aws_dynamodb_table.terraform_lock.arn
     ]
   }
 }
