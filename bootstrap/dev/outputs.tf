@@ -1,6 +1,6 @@
 output "tf_state_bucket_name" {
   description = "Name of the S3 bucket used for Terraform state."
-  value       = module.remote_backend.state_bucket_name
+  value       = aws_s3_bucket.terraform_state.id
 }
 
 output "tf_backend_key" {
@@ -15,17 +15,17 @@ output "aws_region" {
 
 output "tf_state_bucket_arn" {
   description = "ARN of the S3 bucket used for Terraform state."
-  value       = module.remote_backend.state_bucket_arn
+  value       = aws_s3_bucket.terraform_state.arn
 }
 
 output "tf_state_lock_table_name" {
   description = "Name of the DynamoDB table used for Terraform state locking."
-  value       = module.remote_backend.lock_table_name
+  value       = aws_dynamodb_table.terraform_lock.name
 }
 
 output "tf_state_lock_table_arn" {
   description = "ARN of the DynamoDB table used for Terraform state locking."
-  value       = module.remote_backend.lock_table_arn
+  value       = aws_dynamodb_table.terraform_lock.arn
 }
 
 output "github_actions_role_arn" {
