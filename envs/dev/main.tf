@@ -267,8 +267,11 @@ module "s3_bucket_logs" {
   }
 
   # Versioning:
-  # - When enabled, S3 keeps older versions of objects (safer, but more storage).
-  versioning_enabled = true
+  # - In dev we keep this disabled to reduce destroy friction for short-lived
+  #   validation environments.
+  # - Production-style environments often keep versioning enabled for stronger
+  #   recovery guarantees and longer-lived data retention.
+  versioning_enabled = false
 
   # Bucket policy (optional):
   # If omitted (module default), no additional bucket policy is attached
@@ -323,8 +326,11 @@ module "s3_bucket_app" {
   }
 
   # Versioning:
-  # - When enabled, S3 keeps older versions of objects (safer, but more storage).
-  versioning_enabled = true
+  # - In dev we keep this disabled to reduce destroy friction for short-lived
+  #   validation environments.
+  # - Production-style environments often keep versioning enabled for stronger
+  #   recovery guarantees and longer-lived data retention.
+  versioning_enabled = false
 
   # Server access logging (optional):
   # If access_logging.enabled = false (module default), no logs are delivered.
