@@ -258,7 +258,7 @@ Centralized logs bucket intended for:
 Characteristics:
 
 * SSE-KMS encryption using the dedicated `logs` KMS key
-* versioning enabled
+* versioning disabled in dev to reduce destroy friction for short-lived validation
 * lifecycle rules for cost control
 * restricted bucket policy allowing:
   * S3 server access log delivery from the app bucket
@@ -274,7 +274,7 @@ Example application storage bucket.
 Characteristics:
 
 * SSE-KMS encryption using the dedicated `s3` KMS key
-* versioning enabled
+* versioning disabled in dev to reduce destroy friction for short-lived validation
 * S3 Server Access Logging enabled
   * logs delivered to `s3_bucket_logs`
   * stored under prefix `app/`
