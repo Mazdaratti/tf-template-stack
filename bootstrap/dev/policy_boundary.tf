@@ -22,6 +22,12 @@ resource "aws_iam_policy" "github_actions_boundary" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid      = "AllowAllWithinBoundaryUnlessExplicitlyDenied"
+        Effect   = "Allow"
+        Action   = "*"
+        Resource = "*"
+      },
+      {
         Sid    = "DenyIAMPrivilegeEscalationOutsideRepoScope"
         Effect = "Deny"
         Action = [
