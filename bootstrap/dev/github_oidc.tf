@@ -1,6 +1,7 @@
 locals {
   github_repo_full_name = "${var.github_org}/${var.github_repo}"
-  github_subject        = "repo:${local.github_repo_full_name}:ref:refs/heads/${var.github_branch}"
+  github_branch_subject = "repo:${local.github_repo_full_name}:ref:refs/heads/${var.github_branch}"
+  github_env_subject    = "repo:${local.github_repo_full_name}:environment:${var.environment}"
   oidc_url              = "https://token.actions.githubusercontent.com"
 }
 
@@ -35,11 +36,19 @@ data "aws_iam_policy_document" "github_assume_role" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Restrict role assumption to the configured repository branch.
+    # Allow only the repo-specific subject shapes that we actually use:
+    # - branch-based runs for the configured branch
+    # - environment-based runs for the configured GitHub Environment
+    #
+    # This stays tighter than a broad repo:* wildcard while supporting
+    # the current deploy workflow, which runs with environment: dev.
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = [local.github_subject]
+      values = [
+        local.github_branch_subject,
+        local.github_env_subject,
+      ]
     }
   }
 }
