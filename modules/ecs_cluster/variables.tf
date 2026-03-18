@@ -43,7 +43,7 @@ variable "cluster_name" {
   default     = null
 
   validation {
-    condition     = var.cluster_name == null || length(trimspace(var.cluster_name)) > 0
+    condition     = var.cluster_name == null ? true : length(trimspace(var.cluster_name)) > 0
     error_message = "cluster_name must be null or a non-empty string."
   }
 }
