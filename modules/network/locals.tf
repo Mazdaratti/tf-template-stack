@@ -23,7 +23,9 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  azs = var.azs != null && length(var.azs) > 0 ? var.azs : slice(data.aws_availability_zones.available.names, 0, var.az_count)
+  azs = var.azs == null ? slice(data.aws_availability_zones.available.names, 0, var.az_count) : (
+    length(var.azs) > 0 ? var.azs : slice(data.aws_availability_zones.available.names, 0, var.az_count)
+  )
 }
 
 ############################################

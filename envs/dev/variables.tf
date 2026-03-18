@@ -159,7 +159,7 @@ variable "ecs_cluster_name" {
   default     = null
 
   validation {
-    condition     = var.ecs_cluster_name == null || length(trimspace(var.ecs_cluster_name)) > 0
+    condition     = var.ecs_cluster_name == null ? true : length(trimspace(var.ecs_cluster_name)) > 0
     error_message = "ecs_cluster_name must be null or a non-empty string."
   }
 }

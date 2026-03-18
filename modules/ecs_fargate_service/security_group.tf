@@ -31,7 +31,10 @@ resource "aws_security_group" "service" {
 ############################################
 
 resource "aws_vpc_security_group_ingress_rule" "from_source_sg" {
-  for_each = toset(var.ingress_source_security_group_ids)
+  for_each = {
+    for idx, sg_id in var.ingress_source_security_group_ids :
+    tostring(idx) => sg_id
+  }
 
   security_group_id            = aws_security_group.service.id
   ip_protocol                  = "tcp"
@@ -51,7 +54,10 @@ resource "aws_vpc_security_group_ingress_rule" "from_source_sg" {
 ############################################
 
 resource "aws_vpc_security_group_egress_rule" "to_cidr" {
-  for_each = toset(var.egress_cidr_ipv4)
+  for_each = {
+    for idx, cidr in var.egress_cidr_ipv4 :
+    tostring(idx) => cidr
+  }
 
   security_group_id = aws_security_group.service.id
   ip_protocol       = "-1"
