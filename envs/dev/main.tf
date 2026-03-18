@@ -190,28 +190,26 @@ module "kms_keys" {
   # Foundation baseline keys (dev)
   #***********************************
 
-  # Keep this generic and aligned with upcoming modules:
-  # - s3: for secure s3 bucket baseline
-  # - logs: for logging_baseline / vpc_flow_logs (CloudWatch Logs)
-  # - secretsmanager: common platform primitive
-  # - ssm: common platform primitive (SecureString)
+  # Keep only the keys that are exercised by the current dev baseline:
+  # - logs: for logging_baseline / vpc_flow_logs / ECS service logs
+  # - s3: for secure S3 bucket encryption
+  #
+  # Dev teardown preference:
+  # - use the minimum allowed KMS deletion window (7 days)
+  # - this reduces cleanup friction after validation
+  # - production environments typically use longer windows such as 30 days
+  #   to preserve a stronger recovery buffer before permanent deletion
 
 
   keys = {
     logs = {
-      description = "KMS key for log encryption"
+      description             = "KMS key for log encryption"
+      deletion_window_in_days = 7
     }
 
     s3 = {
-      description = "KMS key for S3 bucket encryption"
-    }
-
-    secretsmanager = {
-      description = "KMS key for Secrets Manager"
-    }
-
-    ssm = {
-      description = "KMS key for SSM Parameter Store SecureString"
+      description             = "KMS key for S3 bucket encryption"
+      deletion_window_in_days = 7
     }
   }
 
@@ -269,8 +267,11 @@ module "s3_bucket_logs" {
   }
 
   # Versioning:
-  # - When enabled, S3 keeps older versions of objects (safer, but more storage).
-  versioning_enabled = true
+  # - In dev we keep this disabled to reduce destroy friction for short-lived
+  #   validation environments.
+  # - Production-style environments often keep versioning enabled for stronger
+  #   recovery guarantees and longer-lived data retention.
+  versioning_enabled = false
 
   # Bucket policy (optional):
   # If omitted (module default), no additional bucket policy is attached
@@ -325,8 +326,11 @@ module "s3_bucket_app" {
   }
 
   # Versioning:
-  # - When enabled, S3 keeps older versions of objects (safer, but more storage).
-  versioning_enabled = true
+  # - In dev we keep this disabled to reduce destroy friction for short-lived
+  #   validation environments.
+  # - Production-style environments often keep versioning enabled for stronger
+  #   recovery guarantees and longer-lived data retention.
+  versioning_enabled = false
 
   # Server access logging (optional):
   # If access_logging.enabled = false (module default), no logs are delivered.

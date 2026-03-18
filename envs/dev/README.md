@@ -222,18 +222,18 @@ Current dev baseline keys:
 
 * `logs` — intended for CloudWatch Logs / VPC Flow Logs
 * `s3` — intended for S3 bucket encryption
-* `secretsmanager` — for Secrets Manager
-* `ssm` — for SSM Parameter Store (SecureString)
 
 Key characteristics:
 
 * one alias per key (auto-generated)
+* 7-day deletion window in dev to reduce teardown friction after validation
+* production environments typically use longer deletion windows such as 30 days
 * safe default key policy (prevents lockout)
 * optional custom key policies
 * consistent tagging
 
 This establishes a reusable encryption baseline for future modules
-(e.g. logging, storage, compute).
+(e.g. logging, storage, compute) while keeping the current dev baseline focused on keys that are actively exercised.
 
 ---
 
@@ -258,7 +258,7 @@ Centralized logs bucket intended for:
 Characteristics:
 
 * SSE-KMS encryption using the dedicated `logs` KMS key
-* versioning enabled
+* versioning disabled in dev to reduce destroy friction for short-lived validation
 * lifecycle rules for cost control
 * restricted bucket policy allowing:
   * S3 server access log delivery from the app bucket
@@ -274,7 +274,7 @@ Example application storage bucket.
 Characteristics:
 
 * SSE-KMS encryption using the dedicated `s3` KMS key
-* versioning enabled
+* versioning disabled in dev to reduce destroy friction for short-lived validation
 * S3 Server Access Logging enabled
   * logs delivered to `s3_bucket_logs`
   * stored under prefix `app/`
