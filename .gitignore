@@ -65,3 +65,6 @@ envs/*/backend.tf
 # Python cache artifacts
 __pycache__/
 *.pyc
+
+# Personal notes
+notes/
