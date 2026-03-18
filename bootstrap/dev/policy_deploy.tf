@@ -216,6 +216,8 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
     actions = [
       "s3:CreateBucket",
       "s3:DeleteBucket",
+      "s3:DeleteBucketEncryption",
+      "s3:DeleteBucketLifecycle",
       "s3:DeleteObject",
       "s3:DeleteObjectVersion",
       "s3:DeleteBucketLogging",
@@ -241,6 +243,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "s3:GetLifecycleConfiguration",
       "s3:GetReplicationConfiguration",
       "s3:ListAllMyBuckets",
+      "s3:ListBucket",
       "s3:ListBucketVersions",
       "s3:PutBucketAcl",
       "s3:PutBucketLogging",

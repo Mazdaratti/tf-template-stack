@@ -430,6 +430,7 @@ module "route53_private_zones" {
   zones = {
     internal = {
       domain_name = "${var.environment}.internal"
+      force_destroy = true
 
       vpc_associations = [
         {
