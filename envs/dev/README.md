@@ -222,18 +222,18 @@ Current dev baseline keys:
 
 * `logs` — intended for CloudWatch Logs / VPC Flow Logs
 * `s3` — intended for S3 bucket encryption
-* `secretsmanager` — for Secrets Manager
-* `ssm` — for SSM Parameter Store (SecureString)
 
 Key characteristics:
 
 * one alias per key (auto-generated)
+* 7-day deletion window in dev to reduce teardown friction after validation
+* production environments typically use longer deletion windows such as 30 days
 * safe default key policy (prevents lockout)
 * optional custom key policies
 * consistent tagging
 
 This establishes a reusable encryption baseline for future modules
-(e.g. logging, storage, compute).
+(e.g. logging, storage, compute) while keeping the current dev baseline focused on keys that are actively exercised.
 
 ---
 
