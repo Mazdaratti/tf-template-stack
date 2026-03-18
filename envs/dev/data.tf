@@ -29,4 +29,4 @@ data "aws_caller_identity" "current" {}
 # - restricting policies by Partition
 #
 # @see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition
-# data "aws_partition" "current" {}
+data "aws_partition" "current" {}

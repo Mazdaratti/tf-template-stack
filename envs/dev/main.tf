@@ -205,6 +205,7 @@ module "kms_keys" {
     logs = {
       description             = "KMS key for log encryption"
       deletion_window_in_days = 7
+      policy                  = data.aws_iam_policy_document.logs_kms.json
     }
 
     s3 = {
