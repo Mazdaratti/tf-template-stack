@@ -254,11 +254,14 @@ Centralized logs bucket intended for:
 
 * S3 Server Access Logs
 * ALB access logs
-* future VPC Flow Logs / CloudTrail integration
+* future S3-delivered audit/logging integrations
 
 Characteristics:
 
-* SSE-KMS encryption using the dedicated `logs` KMS key
+* SSE-S3 encryption
+* this bucket intentionally does not use the dedicated `logs` KMS key because:
+  * ALB access logs require an SSE-S3 destination bucket
+  * S3 server access logs also require an SSE-S3 destination bucket
 * versioning disabled in dev to reduce destroy friction for short-lived validation
 * lifecycle rules for cost control
 * restricted bucket policy allowing:
