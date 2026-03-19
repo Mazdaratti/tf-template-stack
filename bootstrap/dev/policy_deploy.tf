@@ -193,6 +193,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "elasticloadbalancing:DeleteListener",
       "elasticloadbalancing:DeleteLoadBalancer",
       "elasticloadbalancing:DeleteTargetGroup",
+      "elasticloadbalancing:DescribeListenerAttributes",
       "elasticloadbalancing:DescribeTargetHealth",
       "elasticloadbalancing:DescribeListeners",
       "elasticloadbalancing:DescribeLoadBalancerAttributes",
