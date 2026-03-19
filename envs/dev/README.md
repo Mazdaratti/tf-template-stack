@@ -228,7 +228,8 @@ Key characteristics:
 * one alias per key (auto-generated)
 * 7-day deletion window in dev to reduce teardown friction after validation
 * production environments typically use longer deletion windows such as 30 days
-* safe default key policy (prevents lockout)
+* safe default key policy prevents account lockout
+* the active `logs` key adds a custom policy so CloudWatch Logs can use the key for encrypted log groups
 * optional custom key policies
 * consistent tagging
 
@@ -542,9 +543,12 @@ It demonstrates:
 * delegated usage to IAM roles (template pattern)
 * how to pass custom policy JSON into the `kms_keys` module
 
-Active key policies must be defined in `kms_key_policies.tf`.
+Active key policies are defined in `kms_key_policies.tf`.
 
-Policies are **disabled by default** and only applied if explicitly enabled.
+Current dev baseline:
+
+* the `logs` key uses an active custom policy so CloudWatch Logs can use the key
+* additional key policies remain optional and are only added when a concrete service integration requires them
 
 ---
 
@@ -696,6 +700,7 @@ To avoid unexpected charges:
 - destroy the environment when not actively testing
 - configure AWS Budgets alerts
 - prefer `single` NAT mode in dev
+
 ---
 
 <!-- BEGIN_TF_DOCS -->
@@ -739,8 +744,10 @@ To avoid unexpected charges:
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.alb_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.logs_bucket_combined](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.logs_kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.s3_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.vpce_s3_restricted_to_env_buckets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 
 ## Inputs
 
