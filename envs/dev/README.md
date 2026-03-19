@@ -711,11 +711,19 @@ The deployment workflow:
 - waits for ECS service stability
 - verifies ALB target group health through AWS APIs
 
+Example validated GitHub Actions deploy workflow:
+
+![GitHub Actions dev deploy workflow success](../../docs/screenshots/envs-dev/github-actions-dev-deploy-success.png)
+
 ### Why no HTTP smoke test from GitHub Actions?
 
 - the ALB in `envs/dev` is internal/private
 - GitHub-hosted runners are outside the VPC
 - the workflow therefore uses ECS service state and target group health as the v1 smoke-test baseline
+
+Example validated workflow target-group health check:
+
+![GitHub Actions dev target group health check](../../docs/screenshots/envs-dev/github-actions-dev-target-group-health-check.png)
 
 ### Destroy order
 
