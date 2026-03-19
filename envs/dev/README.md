@@ -161,6 +161,10 @@ Supported modes:
 * `single` — cheaper, suitable for dev
 * `per_az` — recommended for production-like setups
 
+Example validated dev NAT Gateway:
+
+![Dev NAT Gateway](../../docs/screenshots/envs-dev/nat-gateway-dev-single.png)
+
 ---
 
 ## Gateway VPC Endpoints (S3, DynamoDB)
@@ -179,6 +183,10 @@ Key characteristics:
 * attached to **private route tables**
 * removes the need for NAT access to S3/DynamoDB
 * supports optional endpoint policies
+
+Example validated S3 gateway endpoint:
+
+![Dev S3 gateway endpoint](../../docs/screenshots/envs-dev/vpc-gateway-endpoints-dev_S3.png)
 
 ---
 
@@ -208,6 +216,10 @@ Why only `logs` in this environment?
 * there is no SSM-managed instance in the VPC
 * the current workload does not read from Secrets Manager
 
+Example validated CloudWatch Logs interface endpoint:
+
+![Dev logs interface endpoint](../../docs/screenshots/envs-dev/vpc-interface-endpoint-logs-dev.png)
+
 ---
 
 ## KMS Keys (encryption baseline)
@@ -228,7 +240,8 @@ Key characteristics:
 * one alias per key (auto-generated)
 * 7-day deletion window in dev to reduce teardown friction after validation
 * production environments typically use longer deletion windows such as 30 days
-* safe default key policy (prevents lockout)
+* safe default key policy prevents account lockout
+* the active `logs` key adds a custom policy so CloudWatch Logs can use the key for encrypted log groups
 * optional custom key policies
 * consistent tagging
 
@@ -253,17 +266,24 @@ Centralized logs bucket intended for:
 
 * S3 Server Access Logs
 * ALB access logs
-* future VPC Flow Logs / CloudTrail integration
+* future S3-delivered audit/logging integrations
 
 Characteristics:
 
-* SSE-KMS encryption using the dedicated `logs` KMS key
+* SSE-S3 encryption
+* this bucket intentionally does not use the dedicated `logs` KMS key because:
+  * ALB access logs require an SSE-S3 destination bucket
+  * S3 server access logs also require an SSE-S3 destination bucket
 * versioning disabled in dev to reduce destroy friction for short-lived validation
 * lifecycle rules for cost control
 * restricted bucket policy allowing:
   * S3 server access log delivery from the app bucket
   * ALB access log delivery from the dev ingress layer
   * policy definitions live in `s3_bucket_policies.tf`
+
+Example validated shared logs bucket:
+
+![Dev shared logs bucket encryption](../../docs/screenshots/envs-dev/s3-logs-bucket-dev-encryption.png)
 
 ---
 
@@ -278,6 +298,10 @@ Characteristics:
 * S3 Server Access Logging enabled
   * logs delivered to `s3_bucket_logs`
   * stored under prefix `app/`
+
+Example validated app bucket encryption:
+
+![Dev app bucket encryption](../../docs/screenshots/envs-dev/s3-app-bucket-dev-encryption.png)
 
 ---
 
@@ -383,6 +407,10 @@ After `terraform apply`, you can validate the setup:
   - `vpc_flow_logs`
 - Wait for the first log streams/records (traffic must exist)
 
+Example validated VPC Flow Logs destination:
+
+![Dev VPC Flow Logs log group](../../docs/screenshots/envs-dev/cloudwatch-vpc-flow-logs-dev.png)
+
 ---
 
 ## Route53 Private Zones (private DNS baseline)
@@ -412,6 +440,10 @@ Why this module is separate:
 * keeps DNS concerns isolated from network and endpoint modules
 * keeps env composition thin while preserving reusable module logic
 * provides a clean extension path for future internal service discovery needs
+
+Example validated private hosted zone:
+
+![Dev Route53 private zone](../../docs/screenshots/envs-dev/route53-private-zone-dev-internal.png)
 
 ---
 
@@ -484,6 +516,14 @@ Why this module is separate:
 
 Workload services attach to shared target groups without re-owning ingress infrastructure.
 
+Example validated ALB ingress resource map:
+
+![Dev ALB ingress resource map](../../docs/screenshots/envs-dev/alb-ingress-dev-resource-map.png)
+
+Example validated target group health:
+
+![Dev ALB target group healthy](../../docs/screenshots/envs-dev/alb-target-group-dev-healthy.png)
+
 ---
 
 ## ECS Fargate Service (workload baseline)
@@ -509,6 +549,14 @@ Why this module exists:
 * keeps shared ALB ownership in `alb_ingress`
 * moves workload-specific service resources into a reusable service module
 * demonstrates the intended platform -> ingress -> service composition in `envs/dev`
+
+Example validated ECS service state:
+
+![Dev ECS service stable](../../docs/screenshots/envs-dev/ecs-service-dev-stable.png)
+
+Example validated ECS service log group:
+
+![Dev ECS service log group](../../docs/screenshots/envs-dev/cloudwatch-ecs-service-logs-dev.png)
 
 ---
 
@@ -542,9 +590,12 @@ It demonstrates:
 * delegated usage to IAM roles (template pattern)
 * how to pass custom policy JSON into the `kms_keys` module
 
-Active key policies must be defined in `kms_key_policies.tf`.
+Active key policies are defined in `kms_key_policies.tf`.
 
-Policies are **disabled by default** and only applied if explicitly enabled.
+Current dev baseline:
+
+* the `logs` key uses an active custom policy so CloudWatch Logs can use the key
+* additional key policies remain optional and are only added when a concrete service integration requires them
 
 ---
 
@@ -696,6 +747,7 @@ To avoid unexpected charges:
 - destroy the environment when not actively testing
 - configure AWS Budgets alerts
 - prefer `single` NAT mode in dev
+
 ---
 
 <!-- BEGIN_TF_DOCS -->
@@ -739,8 +791,10 @@ To avoid unexpected charges:
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.alb_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.logs_bucket_combined](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.logs_kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.s3_access_logs_delivery](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.vpce_s3_restricted_to_env_buckets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 
 ## Inputs
 

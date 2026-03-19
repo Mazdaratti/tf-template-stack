@@ -95,7 +95,7 @@ This layered composition keeps responsibilities separated:
 - **ecs_cluster** — ECS cluster baseline with Container Insights and capacity provider controls
 - **alb_ingress** — Shared internal/public ALB ingress baseline with security groups, listeners, target groups, and optional access logs
 - **ecs_fargate_service** — Reusable ECS Fargate service baseline with task definition, service, IAM roles, service security group, CloudWatch logging, and optional target group attachment
-- **remote_backend** — S3 + DynamoDB remote state backend for bootstrap usage
+- **remote_backend** — Shared S3 + DynamoDB remote state backend module intended for persistence-oriented bootstrap paths (the current `bootstrap/dev` path uses inline backend resources instead)
 
 ---
 
@@ -144,6 +144,8 @@ For the detailed walkthroughs, see:
 
 - `bootstrap/dev/README.md` for bootstrap setup, backend lifecycle, and validation evidence
 - `envs/dev/README.md` for environment deployment flow, GitHub Environment sync, and operator guidance
+
+The current `dev` bootstrap implementation owns its backend resources directly in `bootstrap/dev` so the environment can be created, validated, destroyed, and recreated cleanly during short-lived AWS validation cycles.
 
 ---
 

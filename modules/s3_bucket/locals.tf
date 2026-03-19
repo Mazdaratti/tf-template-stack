@@ -61,9 +61,4 @@ locals {
 
   # Access logging is optional.
   logging_enabled = var.access_logging.enabled
-
-  # Bucket policy is optional. We create a policy if:
-  # - baseline TLS-only deny is enabled OR
-  # - user provided policy_json
-  policy_enabled = var.attach_deny_insecure_transport_policy || var.policy_json != null
 }

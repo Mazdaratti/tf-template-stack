@@ -13,7 +13,7 @@ It provisions foundational infrastructure required before environment deployment
   - DynamoDB table for state locking
 - **GitHub Actions OIDC authentication**
   - OIDC provider for GitHub
-  - IAM role that GitHub Actions deployment workflows can assume (main branch only)
+  - IAM role that GitHub Actions deployment workflows can assume using the configured repo-scoped branch and environment subject patterns
 
 It also **generates `envs/dev/backend.tf` automatically** after apply, so you don’t need to create the backend configuration manually.
 
@@ -25,6 +25,15 @@ It also **generates `envs/dev/backend.tf` automatically** after apply, so you do
 - the lock table does not enable DynamoDB point-in-time recovery
 
 This design allows the `dev` bootstrap to be safely applied, destroyed, and recreated during infrastructure validation and experimentation.
+
+Why this root does not use `modules/remote_backend`:
+
+- the shared `remote_backend` module is persistence-oriented and currently hardens the backend against deletion
+- that behavior is a better fit for longer-lived environments such as `stage` or `prod`
+- for `dev`, the goal is different: create real infrastructure, validate it, and then tear it down cleanly to avoid cost
+- Terraform lifecycle protection for backend resources is not something we can safely treat as a simple root-level toggle for this workflow
+
+For that reason, `bootstrap/dev` owns the backend resources directly, while the shared `remote_backend` module remains a better fit for future persistent environments.
 
 ---
 
@@ -43,7 +52,10 @@ You typically run it **once**, but for `dev` it is also valid to destroy and rec
 
 This stack creates an IAM role for GitHub Actions:
 
-- ✅ Trust is restricted to **your repo + `main` branch**
+- ✅ Trust is restricted to **your repository** and to the explicit subject patterns used by the current deployment model
+- ✅ The current dev deployment path allows:
+  - branch-based subject matching for the configured branch
+  - environment-based subject matching for GitHub Environment `dev`
 - ✅ By default, permissions are separated into:
   - Terraform state bucket access (S3)
   - Terraform lock table access (DynamoDB)
@@ -68,6 +80,13 @@ This stack can also create a **repo-aligned permissions boundary** for the GitHu
 
 This boundary is intended as a practical guardrail for this repository's current IAM model. It is still not a substitute for centrally managed organization-wide guardrails in a larger environment.
 
+In the current implementation, the boundary works as:
+
+- a broad allow baseline for normal Terraform and AWS service operations
+- explicit deny guardrails for IAM privilege-escalation paths and IAM management outside repo-owned runtime roles and policies
+
+This keeps the deploy role usable for real infrastructure automation while still preserving the intended IAM safety boundaries.
+
 ---
 
 ## Usage
@@ -91,6 +110,7 @@ At minimum, set:
 - `github_repo`
 
 Optional values such as `github_branch`, naming overrides, and guardrail toggles can then be adjusted as needed.
+If you change the allowed branch/environment trust inputs, re-apply bootstrap before retrying GitHub Actions deployments.
 
 After values are set run:
 
@@ -203,16 +223,16 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization/user name that owns the repository. | `string` | n/a | yes |
-| <a name="input_github_repo"></a> [github\_repo](#input\_github\_repo) | GitHub repository name. | `string` | n/a | yes |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_attach_admin_policy"></a> [attach\_admin\_policy](#input\_attach\_admin\_policy) | Legacy prototyping-only escape hatch. If true, attach AWS managed AdministratorAccess to the GitHub Actions role. Keep disabled for the hardened deployment model. | `bool` | `false` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region where bootstrap resources will be created. | `string` | `"eu-central-1"` | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags applied to resources. | `map(string)` | `{}` | no |
 | <a name="input_create_permissions_boundary"></a> [create\_permissions\_boundary](#input\_create\_permissions\_boundary) | If true, create and attach the repo-aligned permissions boundary to the GitHub Actions role. | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev/stage/prod). Used for naming and for writing env backend.tf. | `string` | `"dev"` | no |
 | <a name="input_github_branch"></a> [github\_branch](#input\_github\_branch) | GitHub branch name allowed to assume the GitHub Actions deploy role. | `string` | `"main"` | no |
+| <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization/user name that owns the repository. | `string` | n/a | yes |
+| <a name="input_github_repo"></a> [github\_repo](#input\_github\_repo) | GitHub repository name. | `string` | n/a | yes |
 | <a name="input_lock_table_name"></a> [lock\_table\_name](#input\_lock\_table\_name) | Optional override for the Terraform lock DynamoDB table name. | `string` | `null` | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_state_bucket_name"></a> [state\_bucket\_name](#input\_state\_bucket\_name) | Optional override for the Terraform state S3 bucket name. | `string` | `null` | no |
 
 ## Outputs

@@ -52,10 +52,12 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "ec2:DeleteVpc",
       "ec2:DeleteVpcEndpoints",
       "ec2:DescribeAddresses",
+      "ec2:DescribeAddressesAttribute",
       "ec2:DescribeAvailabilityZones",
       "ec2:DescribeFlowLogs",
       "ec2:DescribeInternetGateways",
       "ec2:DescribeNatGateways",
+      "ec2:DescribeNetworkInterfaces",
       "ec2:DescribePrefixLists",
       "ec2:DescribeRouteTables",
       "ec2:DescribeSecurityGroupRules",
@@ -231,6 +233,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "s3:GetBucketCORS",
       "s3:GetBucketLocation",
       "s3:GetBucketLogging",
+      "s3:GetBucketObjectLockConfiguration",
       "s3:GetBucketOwnershipControls",
       "s3:GetBucketPolicy",
       "s3:GetBucketPublicAccessBlock",
@@ -319,6 +322,32 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "iam:ListRoles"
     ]
     resources = ["*"]
+  }
+
+  ##########################################
+  # Service-linked role bootstrap for ECS
+  ##########################################
+  #
+  # Why this is needed:
+  # - ECS may need AWSServiceRoleForECS in a fresh or recently reset account
+  # - local apply success does not guarantee the GitHub OIDC role can create it
+  # - keep this narrowly scoped to the ECS service-linked role path only
+  ##########################################
+  statement {
+    sid    = "TerraformAllowECSServiceLinkedRoleCreation"
+    effect = "Allow"
+    actions = [
+      "iam:CreateServiceLinkedRole"
+    ]
+    resources = [
+      "arn:aws:iam::*:role/aws-service-role/ecs.amazonaws.com/*"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "iam:AWSServiceName"
+      values   = ["ecs.amazonaws.com"]
+    }
   }
 }
 

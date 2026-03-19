@@ -33,6 +33,11 @@ data "aws_iam_policy_document" "vpce_s3_restricted_to_env_buckets" {
     sid    = "AllowS3OnlyToEnvBuckets"
     effect = "Allow"
 
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
     # Minimal-risk approach: allow all S3 actions, but only for selected buckets.
     actions = ["s3:*"]
 
