@@ -323,6 +323,32 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
     ]
     resources = ["*"]
   }
+
+  ##########################################
+  # Service-linked role bootstrap for ECS
+  ##########################################
+  #
+  # Why this is needed:
+  # - ECS may need AWSServiceRoleForECS in a fresh or recently reset account
+  # - local apply success does not guarantee the GitHub OIDC role can create it
+  # - keep this narrowly scoped to the ECS service-linked role path only
+  ##########################################
+  statement {
+    sid    = "TerraformAllowECSServiceLinkedRoleCreation"
+    effect = "Allow"
+    actions = [
+      "iam:CreateServiceLinkedRole"
+    ]
+    resources = [
+      "arn:aws:iam::*:role/aws-service-role/ecs.amazonaws.com/*"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "iam:AWSServiceName"
+      values   = ["ecs.amazonaws.com"]
+    }
+  }
 }
 
 resource "aws_iam_policy" "github_actions_deploy_policy" {
