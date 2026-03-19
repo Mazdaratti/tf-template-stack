@@ -228,17 +228,19 @@ module "kms_keys" {
 # We create two buckets using the same reusable s3_bucket module:
 #
 # - s3_bucket_logs:
-#   Central destination bucket for S3 Server Access Logs (and later other logging sources).
-#   Uses the dedicated KMS key: key_arns["logs"].
+#   Central destination bucket for S3 server access logs and ALB access logs.
+#   Uses SSE-S3 encryption because both delivery paths require an SSE-S3
+#   destination bucket.
 #
 # - s3_bucket_app:
 #   Example application bucket.
 #   Uses the dedicated KMS key: key_arns["s3"].
 #   Sends its server access logs to s3_bucket_logs under prefix "app/".
 #
-# Why separate KMS keys?
-# - Clear separation of concerns: log data vs application data
-# - Reduced blast radius if key policy/permissions evolve later
+# Why this split?
+# - The app bucket still uses its own dedicated KMS key for application data
+# - The shared logs bucket stays on SSE-S3 because AWS log delivery requires it
+# - CloudWatch Logs still use the dedicated "logs" KMS key elsewhere in this env
 #
 # Naming:
 # S3 bucket names must be globally unique. We append the AWS account ID to
@@ -260,11 +262,13 @@ module "s3_bucket_logs" {
   force_destroy = true
 
   # Encryption:
-  # - type = "KMS" enables SSE-KMS.
-  # - kms_key_arn selects the customer-managed KMS key created by kms_keys.
+  # - the shared logs bucket receives ALB access logs and S3 server access logs
+  # - both delivery paths require the destination bucket to use SSE-S3
+  # - we therefore keep this bucket on S3-managed encryption
+  # - the dedicated "logs" KMS key is still used for CloudWatch Logs, not for
+  #   this S3 destination bucket
   encryption = {
-    type        = "KMS"
-    kms_key_arn = module.kms_keys.key_arns["logs"]
+    type = "S3"
   }
 
   # Versioning:
