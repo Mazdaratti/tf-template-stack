@@ -161,6 +161,10 @@ Supported modes:
 * `single` — cheaper, suitable for dev
 * `per_az` — recommended for production-like setups
 
+Example validated dev NAT Gateway:
+
+![Dev NAT Gateway](../../docs/screenshots/envs-dev/nat-gateway-dev-single.png)
+
 ---
 
 ## Gateway VPC Endpoints (S3, DynamoDB)
@@ -179,6 +183,10 @@ Key characteristics:
 * attached to **private route tables**
 * removes the need for NAT access to S3/DynamoDB
 * supports optional endpoint policies
+
+Example validated S3 gateway endpoint:
+
+![Dev S3 gateway endpoint](../../docs/screenshots/envs-dev/vpc-gateway-endpoints-dev_S3.png)
 
 ---
 
@@ -207,6 +215,10 @@ Why only `logs` in this environment?
 * ECS Exec is disabled in the current dev baseline
 * there is no SSM-managed instance in the VPC
 * the current workload does not read from Secrets Manager
+
+Example validated CloudWatch Logs interface endpoint:
+
+![Dev logs interface endpoint](../../docs/screenshots/envs-dev/vpc-interface-endpoint-logs-dev.png)
 
 ---
 
@@ -269,6 +281,10 @@ Characteristics:
   * ALB access log delivery from the dev ingress layer
   * policy definitions live in `s3_bucket_policies.tf`
 
+Example validated shared logs bucket:
+
+![Dev shared logs bucket encryption](../../docs/screenshots/envs-dev/s3-logs-bucket-dev-encryption.png)
+
 ---
 
 ### `s3_bucket_app`
@@ -282,6 +298,10 @@ Characteristics:
 * S3 Server Access Logging enabled
   * logs delivered to `s3_bucket_logs`
   * stored under prefix `app/`
+
+Example validated app bucket encryption:
+
+![Dev app bucket encryption](../../docs/screenshots/envs-dev/s3-app-bucket-dev-encryption.png)
 
 ---
 
@@ -387,6 +407,10 @@ After `terraform apply`, you can validate the setup:
   - `vpc_flow_logs`
 - Wait for the first log streams/records (traffic must exist)
 
+Example validated VPC Flow Logs destination:
+
+![Dev VPC Flow Logs log group](../../docs/screenshots/envs-dev/cloudwatch-vpc-flow-logs-dev.png)
+
 ---
 
 ## Route53 Private Zones (private DNS baseline)
@@ -416,6 +440,10 @@ Why this module is separate:
 * keeps DNS concerns isolated from network and endpoint modules
 * keeps env composition thin while preserving reusable module logic
 * provides a clean extension path for future internal service discovery needs
+
+Example validated private hosted zone:
+
+![Dev Route53 private zone](../../docs/screenshots/envs-dev/route53-private-zone-dev-internal.png)
 
 ---
 
@@ -488,6 +516,14 @@ Why this module is separate:
 
 Workload services attach to shared target groups without re-owning ingress infrastructure.
 
+Example validated ALB ingress resource map:
+
+![Dev ALB ingress resource map](../../docs/screenshots/envs-dev/alb-ingress-dev-resource-map.png)
+
+Example validated target group health:
+
+![Dev ALB target group healthy](../../docs/screenshots/envs-dev/alb-target-group-dev-healthy.png)
+
 ---
 
 ## ECS Fargate Service (workload baseline)
@@ -513,6 +549,14 @@ Why this module exists:
 * keeps shared ALB ownership in `alb_ingress`
 * moves workload-specific service resources into a reusable service module
 * demonstrates the intended platform -> ingress -> service composition in `envs/dev`
+
+Example validated ECS service state:
+
+![Dev ECS service stable](../../docs/screenshots/envs-dev/ecs-service-dev-stable.png)
+
+Example validated ECS service log group:
+
+![Dev ECS service log group](../../docs/screenshots/envs-dev/cloudwatch-ecs-service-logs-dev.png)
 
 ---
 
