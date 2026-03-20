@@ -19,9 +19,3 @@ variable "state_bucket_name" {
   type        = string
   default     = null
 }
-
-variable "lock_table_name" {
-  description = "Override for the DynamoDB table name. If not provided, derived from project_name and environment."
-  type        = string
-  default     = null
-}

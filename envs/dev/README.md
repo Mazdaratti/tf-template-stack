@@ -12,7 +12,7 @@ It is part of the **tf-template-stack** and is designed to be:
 
 ## Remote backend model used in this template
 
-This template uses a **remote Terraform backend** (S3 + DynamoDB) for:
+This template uses a **remote Terraform backend** (S3 + lockfile-based state locking) for:
 
 * state storage
 * state locking
@@ -27,7 +27,6 @@ Instead:
 2. The bootstrap stack will:
 
    * create the S3 state bucket
-   * create the DynamoDB lock table
    * generate `envs/dev/backend.tf` automatically
    * create the GitHub Actions deployment role and configure OIDC trust used later for deployment automation
 
@@ -685,7 +684,6 @@ Expected GitHub Environment `dev` variables:
 - `AWS_ROLE_TO_ASSUME`
 - `AWS_REGION`
 - `TF_BACKEND_BUCKET`
-- `TF_BACKEND_DYNAMODB_TABLE`
 - `TF_BACKEND_KEY`
 
 Recommended value:
@@ -710,6 +708,8 @@ The deployment workflow:
 - runs Terraform `init`, `validate`, `plan`, and `apply`
 - waits for ECS service stability
 - verifies ALB target group health through AWS APIs
+
+The generated backend configuration uses the same lockfile-based S3 backend model as `bootstrap/dev`.
 
 Example validated GitHub Actions deploy workflow:
 

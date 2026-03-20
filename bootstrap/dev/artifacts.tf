@@ -8,10 +8,10 @@ resource "local_file" "backend_config" {
   content = <<EOT
 terraform {
   backend "s3" {
-    bucket         = "${aws_s3_bucket.terraform_state.id}"
-    dynamodb_table = "${aws_dynamodb_table.terraform_lock.name}"
-    key            = "${local.tf_backend_key}"
-    region         = "${var.aws_region}"
+    bucket       = "${aws_s3_bucket.terraform_state.id}"
+    key          = "${local.tf_backend_key}"
+    region       = "${var.aws_region}"
+    use_lockfile = true
   }
 }
 EOT

@@ -32,7 +32,7 @@ terraform apply
 Verify:
 
 - Terraform state bucket exists
-- Terraform lock table exists
+- generated backend config uses S3 lockfile-based state locking
 - GitHub OIDC provider exists
 - GitHub Actions deploy role exists
 - `envs/dev/backend.tf` was generated
@@ -51,7 +51,6 @@ Verify GitHub Environment `dev` contains:
 - `AWS_ROLE_TO_ASSUME`
 - `AWS_REGION`
 - `TF_BACKEND_BUCKET`
-- `TF_BACKEND_DYNAMODB_TABLE`
 - `TF_BACKEND_KEY`
 
 ## 3. Deploy `envs/dev`
@@ -101,7 +100,6 @@ terraform destroy
 Verify:
 
 - Terraform state bucket is removed
-- Terraform lock table is removed
 - no manual bucket cleanup is required
 
 ## Recovery note
