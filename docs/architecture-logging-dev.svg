@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" role="img" aria-labelledby="title desc">
+  <title id="title">tf-template-stack logging flows for envs/dev</title>
+  <desc id="desc">Logging and telemetry flow diagram for the validated dev environment.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f6f7f4; }
+      .panel { fill: #ffffff; stroke: #1f2937; stroke-width: 2; rx: 18; ry: 18; }
+      .box { fill: #fffdf8; stroke: #4b5563; stroke-width: 2; rx: 12; ry: 12; }
+      .blue { fill: #eef4fb; stroke: #2c5f8a; stroke-width: 2; rx: 12; ry: 12; }
+      .green { fill: #e8f1e8; stroke: #2f6b3b; stroke-width: 2; rx: 12; ry: 12; }
+      .amber { fill: #f8efe2; stroke: #9a5b16; stroke-width: 2; rx: 12; ry: 12; }
+      .title { font: 700 28px 'Segoe UI', sans-serif; fill: #111827; }
+      .subtitle { font: 600 18px 'Segoe UI', sans-serif; fill: #1f2937; }
+      .label { font: 600 16px 'Segoe UI', sans-serif; fill: #111827; }
+      .small { font: 500 14px 'Segoe UI', sans-serif; fill: #374151; }
+      .tiny { font: 500 13px 'Segoe UI', sans-serif; fill: #4b5563; }
+      .line { stroke: #4b5563; stroke-width: 2.5; fill: none; }
+      .dash { stroke: #6b7280; stroke-width: 2; stroke-dasharray: 8 7; fill: none; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1280" height="860"/>
+  <text class="title" x="60" y="58">Logging / Telemetry Flows (`envs/dev`)</text>
+  <text class="small" x="60" y="88">Which logs go to CloudWatch Logs and which logs go to the shared S3 logs bucket in the validated dev environment.</text>
+
+  <rect class="panel" x="60" y="130" width="1160" height="660"/>
+  <text class="subtitle" x="90" y="168">Logging destinations</text>
+
+  <rect class="green" x="100" y="230" width="230" height="76"/>
+  <text class="label" x="143" y="265">ECS service</text>
+  <text class="tiny" x="143" y="287">container / application logs</text>
+
+  <rect class="green" x="100" y="360" width="230" height="76"/>
+  <text class="label" x="136" y="395">VPC Flow Logs</text>
+  <text class="tiny" x="136" y="417">network telemetry</text>
+
+  <rect class="amber" x="100" y="490" width="230" height="76"/>
+  <text class="label" x="145" y="525">Internal ALB</text>
+  <text class="tiny" x="145" y="547">access logs</text>
+
+  <rect class="blue" x="100" y="620" width="230" height="76"/>
+  <text class="label" x="149" y="655">S3 app bucket</text>
+  <text class="tiny" x="149" y="677">server access logs</text>
+
+  <rect class="box" x="420" y="225" width="260" height="86"/>
+  <text class="label" x="452" y="261">Logs interface endpoint</text>
+  <text class="tiny" x="452" y="283">private path to CloudWatch Logs</text>
+
+  <rect class="blue" x="790" y="250" width="280" height="96"/>
+  <text class="label" x="850" y="288">CloudWatch log groups</text>
+  <text class="tiny" x="850" y="311">ECS service logs</text>
+  <text class="tiny" x="850" y="332">VPC Flow Logs</text>
+
+  <rect class="blue" x="790" y="520" width="280" height="96"/>
+  <text class="label" x="858" y="558">S3 logs bucket</text>
+  <text class="tiny" x="858" y="581">ALB access logs</text>
+  <text class="tiny" x="858" y="602">S3 server access logs</text>
+
+  <rect class="blue" x="1120" y="220" width="80" height="66"/>
+  <text class="label" x="1142" y="257">KMS</text>
+
+  <rect class="box" x="1120" y="500" width="80" height="66"/>
+  <text class="label" x="1144" y="537">SSE-S3</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M330 268 L420 268"/>
+  <path class="line" marker-end="url(#arrow)" d="M680 268 L790 300"/>
+  <path class="line" marker-end="url(#arrow)" d="M330 398 L790 300"/>
+  <path class="line" marker-end="url(#arrow)" d="M330 528 L790 568"/>
+  <path class="line" marker-end="url(#arrow)" d="M330 658 L790 568"/>
+  <path class="dash" marker-end="url(#arrow)" d="M1070 300 L1120 253"/>
+  <path class="dash" marker-end="url(#arrow)" d="M1070 568 L1120 533"/>
+
+  <text class="tiny" x="90" y="750">CloudWatch Logs destination: ECS service logs and VPC Flow Logs. S3 logs bucket destination: ALB access logs and S3 server access logs.</text>
+</svg>
