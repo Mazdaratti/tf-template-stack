@@ -142,14 +142,14 @@ All examples are designed to be:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.31.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -167,14 +167,14 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming/tagging (e.g., dev, stage, prod). | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The VPC ID where gateway endpoints will be created. | `string` | n/a | yes |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags applied to all resources. | `map(string)` | `{}` | no |
 | <a name="input_endpoint_policy_json"></a> [endpoint\_policy\_json](#input\_endpoint\_policy\_json) | Optional map of service => policy JSON (keys: s3, dynamodb). If omitted for a service, AWS default policy is used. | `map(string)` | `{}` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming/tagging (e.g., dev, stage, prod). | `string` | n/a | yes |
 | <a name="input_gateway_endpoints"></a> [gateway\_endpoints](#input\_gateway\_endpoints) | Which gateway endpoints to create. | <pre>object({<br/>    s3       = bool<br/>    dynamodb = bool<br/>  })</pre> | <pre>{<br/>  "dynamodb": true,<br/>  "s3": true<br/>}</pre> | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region used to build endpoint service names. If null, uses the provider region. | `string` | `null` | no |
 | <a name="input_route_table_ids"></a> [route\_table\_ids](#input\_route\_table\_ids) | List of route table IDs to attach the gateway endpoints to (typically private route tables). | `list(string)` | `[]` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The VPC ID where gateway endpoints will be created. | `string` | n/a | yes |
 
 ## Outputs
 

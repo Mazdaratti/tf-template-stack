@@ -226,14 +226,14 @@ All examples are designed to be:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.33.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -249,12 +249,12 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | A map of common tags to apply to all resources. | `map(string)` | `{}` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for tagging (e.g., dev, staging, prod). | `string` | n/a | yes |
-| <a name="input_kms_key_arn"></a> [kms\_key\_arn](#input\_kms\_key\_arn) | Optional default KMS key ARN used to encrypt CloudWatch Log Groups.<br/><br/>Resolution order for each log group:<br/>1) var.log\_groups[KEY].kms\_key\_arn (per-log-group override)<br/>2) var.kms\_key\_arn (module-level default)<br/>3) null (no KMS encryption) | `string` | `null` | no |
 | <a name="input_log_group_name_prefix"></a> [log\_group\_name\_prefix](#input\_log\_group\_name\_prefix) | Prefix used to construct CloudWatch Log Group names.<br/><br/>The module creates names in the form:<br/>  <log\_group\_name\_prefix>/<name\_suffix><br/><br/>Recommended env/dev pattern:<br/>  "/<project\_name>/<environment>"<br/><br/>Note: the module will trim a trailing "/" from this value to avoid "//" in names. | `string` | n/a | yes |
 | <a name="input_log_groups"></a> [log\_groups](#input\_log\_groups) | Map of CloudWatch Log Groups to create.<br/><br/>Map key:<br/>  - Stable identifier used in Terraform state and module outputs.<br/>  - Does NOT affect the log group name.<br/><br/>Value fields:<br/>  - name\_suffix (required): appended to the prefix to form the full log group name<br/>  - retention\_in\_days (optional): override default retention for this log group<br/>  - kms\_key\_arn (optional): override default KMS key for this log group | <pre>map(object({<br/>    name_suffix       = string<br/>    retention_in_days = optional(number)<br/>    kms_key_arn       = optional(string)<br/>  }))</pre> | n/a | yes |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for tagging. | `string` | n/a | yes |
+| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | A map of common tags to apply to all resources. | `map(string)` | `{}` | no |
+| <a name="input_kms_key_arn"></a> [kms\_key\_arn](#input\_kms\_key\_arn) | Optional default KMS key ARN used to encrypt CloudWatch Log Groups.<br/><br/>Resolution order for each log group:<br/>1) var.log\_groups[KEY].kms\_key\_arn (per-log-group override)<br/>2) var.kms\_key\_arn (module-level default)<br/>3) null (no KMS encryption) | `string` | `null` | no |
 | <a name="input_retention_in_days"></a> [retention\_in\_days](#input\_retention\_in\_days) | Default retention period (in days) for log groups, unless overridden per log group. | `number` | `30` | no |
 
 ## Outputs

@@ -190,14 +190,14 @@ Important:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.35.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -226,17 +226,21 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_assign_public_ip"></a> [assign\_public\_ip](#input\_assign\_public\_ip) | Whether tasks receive public IPs. Recommended baseline is false for private subnet deployment. | `bool` | `false` | no |
 | <a name="input_cluster_arn"></a> [cluster\_arn](#input\_cluster\_arn) | ARN of the existing ECS cluster where the service will run. | `string` | n/a | yes |
-| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags to merge with enforced tags. | `map(string)` | `{}` | no |
 | <a name="input_container"></a> [container](#input\_container) | Configuration for the single primary application container.<br/><br/>Fields:<br/>  - image (required): container image URI<br/>  - port (required): application port exposed by the container<br/>  - optional command / entrypoint<br/>  - optional environment variables<br/>  - optional secrets list for ECS valueFrom wiring<br/>  - optional container health check | <pre>object({<br/>    name        = optional(string)<br/>    image       = string<br/>    port        = number<br/>    essential   = optional(bool, true)<br/>    command     = optional(list(string))<br/>    entrypoint  = optional(list(string))<br/>    environment = optional(map(string), {})<br/>    secrets = optional(list(object({<br/>      name       = string<br/>      value_from = string<br/>    })), [])<br/>    readonly_root_filesystem = optional(bool, false)<br/>    health_check = optional(object({<br/>      command      = list(string)<br/>      interval     = optional(number)<br/>      timeout      = optional(number)<br/>      retries      = optional(number)<br/>      start_period = optional(number)<br/>    }))<br/>  })</pre> | n/a | yes |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | Task-level CPU units for the Fargate task definition. | `number` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming and tagging (e.g., dev, stage, prod). | `string` | n/a | yes |
+| <a name="input_memory"></a> [memory](#input\_memory) | Task-level memory (MiB) for the Fargate task definition. | `number` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming and tagging. | `string` | n/a | yes |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Private subnet IDs where the ECS service tasks will be placed. | `list(string)` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where service security group resources are created. | `string` | n/a | yes |
+| <a name="input_assign_public_ip"></a> [assign\_public\_ip](#input\_assign\_public\_ip) | Whether tasks receive public IPs. Recommended baseline is false for private subnet deployment. | `bool` | `false` | no |
+| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags to merge with enforced tags. | `map(string)` | `{}` | no |
 | <a name="input_deployment_maximum_percent"></a> [deployment\_maximum\_percent](#input\_deployment\_maximum\_percent) | Upper limit on the number of running tasks during a deployment, as a percentage of desired\_count. | `number` | `200` | no |
 | <a name="input_deployment_minimum_healthy_percent"></a> [deployment\_minimum\_healthy\_percent](#input\_deployment\_minimum\_healthy\_percent) | Lower limit on the number of running tasks during a deployment, as a percentage of desired\_count. | `number` | `100` | no |
 | <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | Number of task instances to run for the ECS service. | `number` | `1` | no |
 | <a name="input_egress_cidr_ipv4"></a> [egress\_cidr\_ipv4](#input\_egress\_cidr\_ipv4) | List of IPv4 CIDRs allowed for outbound traffic from the service security group. | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
 | <a name="input_enable_cloudwatch_logging"></a> [enable\_cloudwatch\_logging](#input\_enable\_cloudwatch\_logging) | Whether to configure the container to send logs to a module-managed CloudWatch Log Group. | `bool` | `true` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming and tagging (e.g., dev, stage, prod). | `string` | n/a | yes |
 | <a name="input_ephemeral_storage_gib"></a> [ephemeral\_storage\_gib](#input\_ephemeral\_storage\_gib) | Optional ephemeral storage size in GiB for the task definition. If null, AWS default is used. | `number` | `null` | no |
 | <a name="input_execution_role_policy_json"></a> [execution\_role\_policy\_json](#input\_execution\_role\_policy\_json) | List of additional IAM policy JSON documents to attach inline to the task execution role. | `list(string)` | `[]` | no |
 | <a name="input_health_check_grace_period_seconds"></a> [health\_check\_grace\_period\_seconds](#input\_health\_check\_grace\_period\_seconds) | Optional ECS service health check grace period in seconds.<br/><br/>This should be set only when the service is attached to a load balancer. | `number` | `null` | no |
@@ -246,16 +250,12 @@ No modules.
 | <a name="input_log_kms_key_arn"></a> [log\_kms\_key\_arn](#input\_log\_kms\_key\_arn) | Optional KMS key ARN used to encrypt the module-managed CloudWatch Log Group. | `string` | `null` | no |
 | <a name="input_log_retention_in_days"></a> [log\_retention\_in\_days](#input\_log\_retention\_in\_days) | Retention period in days for the module-managed CloudWatch Log Group. | `number` | `30` | no |
 | <a name="input_log_stream_prefix"></a> [log\_stream\_prefix](#input\_log\_stream\_prefix) | Stream prefix used by the awslogs container log driver. | `string` | `"ecs"` | no |
-| <a name="input_memory"></a> [memory](#input\_memory) | Task-level memory (MiB) for the Fargate task definition. | `number` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Optional ECS service name.<br/><br/>If null, the module uses:<br/>  "<project\_name>-<environment>-ecs-service" | `string` | `null` | no |
 | <a name="input_permissions_boundary_arn"></a> [permissions\_boundary\_arn](#input\_permissions\_boundary\_arn) | Optional IAM permissions boundary ARN applied to the task execution role and task role. | `string` | `null` | no |
 | <a name="input_platform_version"></a> [platform\_version](#input\_platform\_version) | Fargate platform version for the ECS service. | `string` | `"LATEST"` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming and tagging. | `string` | n/a | yes |
 | <a name="input_propagate_tags"></a> [propagate\_tags](#input\_propagate\_tags) | Whether ECS should propagate tags from the SERVICE or TASK\_DEFINITION. | `string` | `"SERVICE"` | no |
 | <a name="input_runtime_platform"></a> [runtime\_platform](#input\_runtime\_platform) | Optional runtime platform override for the task definition.<br/><br/>Defaults:<br/>  operating\_system\_family = "LINUX"<br/>  cpu\_architecture        = "X86\_64" | <pre>object({<br/>    operating_system_family = optional(string)<br/>    cpu_architecture        = optional(string)<br/>  })</pre> | `null` | no |
-| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Private subnet IDs where the ECS service tasks will be placed. | `list(string)` | n/a | yes |
 | <a name="input_task_role_policy_json"></a> [task\_role\_policy\_json](#input\_task\_role\_policy\_json) | List of additional IAM policy JSON documents to attach inline to the task role. | `list(string)` | `[]` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where service security group resources are created. | `string` | n/a | yes |
 
 ## Outputs
 

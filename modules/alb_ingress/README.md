@@ -174,14 +174,14 @@ module "alb_ingress" {
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.35.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -203,22 +203,22 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming and tagging (e.g., dev, stage, prod). | `string` | n/a | yes |
+| <a name="input_listeners"></a> [listeners](#input\_listeners) | Map of listeners to create.<br/><br/>Map key:<br/>  - Stable logical key used in Terraform state and outputs.<br/><br/>Value fields:<br/>  - port, protocol<br/>  - default\_action.type<br/>  - default\_action.target\_group\_key (must reference var.target\_groups key) | <pre>map(object({<br/>    port     = number<br/>    protocol = string<br/><br/>    default_action = object({<br/>      type             = string<br/>      target_group_key = string<br/>    })<br/>  }))</pre> | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming and tagging. | `string` | n/a | yes |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Subnet IDs where the ALB will be attached. At least two subnets in different Availability Zones are recommended. | `list(string)` | n/a | yes |
+| <a name="input_target_groups"></a> [target\_groups](#input\_target\_groups) | Map of target groups to create.<br/><br/>Map key:<br/>  - Stable logical key used by listeners and outputs.<br/><br/>Value fields:<br/>  - port, protocol, target\_type<br/>  - optional health\_check<br/>  - optional target group tuning knobs | <pre>map(object({<br/>    port        = number<br/>    protocol    = string<br/>    target_type = string<br/><br/>    health_check = optional(object({<br/>      path                = optional(string, "/")<br/>      protocol            = optional(string, "HTTP")<br/>      matcher             = optional(string, "200-399")<br/>      interval            = optional(number, 30)<br/>      timeout             = optional(number, 5)<br/>      healthy_threshold   = optional(number, 3)<br/>      unhealthy_threshold = optional(number, 3)<br/>    }), {})<br/><br/>    deregistration_delay          = optional(number)<br/>    slow_start                    = optional(number)<br/>    load_balancing_algorithm_type = optional(string)<br/>  }))</pre> | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where ALB and security group resources are created. | `string` | n/a | yes |
 | <a name="input_access_logs"></a> [access\_logs](#input\_access\_logs) | Optional ALB access logging configuration.<br/><br/>- enabled: when true, ALB access logs are delivered to S3<br/>- bucket: destination S3 bucket name (required when enabled=true)<br/>- prefix: optional object key prefix | <pre>object({<br/>    enabled = bool<br/>    bucket  = optional(string)<br/>    prefix  = optional(string)<br/>  })</pre> | <pre>{<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags to merge with enforced tags. | `map(string)` | `{}` | no |
 | <a name="input_drop_invalid_header_fields"></a> [drop\_invalid\_header\_fields](#input\_drop\_invalid\_header\_fields) | Whether the ALB should drop invalid HTTP header fields. | `bool` | `true` | no |
 | <a name="input_egress_cidr_ipv4"></a> [egress\_cidr\_ipv4](#input\_egress\_cidr\_ipv4) | List of IPv4 CIDRs allowed for ALB outbound traffic. | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
 | <a name="input_enable_deletion_protection"></a> [enable\_deletion\_protection](#input\_enable\_deletion\_protection) | Whether deletion protection is enabled on the ALB. | `bool` | `false` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming and tagging (e.g., dev, stage, prod). | `string` | n/a | yes |
 | <a name="input_idle_timeout"></a> [idle\_timeout](#input\_idle\_timeout) | ALB idle timeout in seconds. | `number` | `60` | no |
 | <a name="input_ingress_cidr_ipv4"></a> [ingress\_cidr\_ipv4](#input\_ingress\_cidr\_ipv4) | List of IPv4 CIDRs allowed to reach ALB listener ports. | `list(string)` | `[]` | no |
 | <a name="input_ingress_source_security_group_ids"></a> [ingress\_source\_security\_group\_ids](#input\_ingress\_source\_security\_group\_ids) | List of source security group IDs allowed to reach ALB listener ports. | `list(string)` | `[]` | no |
 | <a name="input_internal"></a> [internal](#input\_internal) | Whether the ALB is internal. If false, ALB is internet-facing. | `bool` | `true` | no |
-| <a name="input_listeners"></a> [listeners](#input\_listeners) | Map of listeners to create.<br/><br/>Map key:<br/>  - Stable logical key used in Terraform state and outputs.<br/><br/>Value fields:<br/>  - port, protocol<br/>  - default\_action.type<br/>  - default\_action.target\_group\_key (must reference var.target\_groups key) | <pre>map(object({<br/>    port     = number<br/>    protocol = string<br/><br/>    default_action = object({<br/>      type             = string<br/>      target_group_key = string<br/>    })<br/>  }))</pre> | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Optional ALB name.<br/><br/>If null, the module uses:<br/>  "<project\_name>-<environment>-alb" | `string` | `null` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming and tagging. | `string` | n/a | yes |
-| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Subnet IDs where the ALB will be attached. At least two subnets in different Availability Zones are recommended. | `list(string)` | n/a | yes |
-| <a name="input_target_groups"></a> [target\_groups](#input\_target\_groups) | Map of target groups to create.<br/><br/>Map key:<br/>  - Stable logical key used by listeners and outputs.<br/><br/>Value fields:<br/>  - port, protocol, target\_type<br/>  - optional health\_check<br/>  - optional target group tuning knobs | <pre>map(object({<br/>    port        = number<br/>    protocol    = string<br/>    target_type = string<br/><br/>    health_check = optional(object({<br/>      path                = optional(string, "/")<br/>      protocol            = optional(string, "HTTP")<br/>      matcher             = optional(string, "200-399")<br/>      interval            = optional(number, 30)<br/>      timeout             = optional(number, 5)<br/>      healthy_threshold   = optional(number, 3)<br/>      unhealthy_threshold = optional(number, 3)<br/>    }), {})<br/><br/>    deregistration_delay          = optional(number)<br/>    slow_start                    = optional(number)<br/>    load_balancing_algorithm_type = optional(string)<br/>  }))</pre> | n/a | yes |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where ALB and security group resources are created. | `string` | n/a | yes |
 
 ## Outputs
 
