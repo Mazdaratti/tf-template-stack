@@ -4,6 +4,23 @@ A production-shaped Terraform template for building private AWS application plat
 
 This repository demonstrates a module-first Terraform architecture where networking, private connectivity, encryption, storage, logging, DNS, ingress, and ECS workloads are separated into reusable building blocks and composed through lightweight environment root modules.
 
+It is also a portfolio project: the current `dev` path was validated against a real AWS environment and a real GitHub Actions deployment workflow.
+
+---
+
+## Validated Capabilities
+
+- `bootstrap/dev` apply, destroy, and recreate flow validated
+- local `envs/dev` apply and destroy validated
+- manually triggered GitHub Actions deployment workflow validated
+- ECS service stability verified
+- ALB target-group health verified
+- validation evidence and screenshots included in `docs/`
+
+For the consolidated evidence overview, see:
+
+- [`docs/validation-summary.md`](docs/validation-summary.md)
+
 ---
 
 ## What this project demonstrates
@@ -70,6 +87,12 @@ This layered composition keeps responsibilities separated:
 - compute foundation modules provide the ECS cluster baseline
 - ingress modules provide shared load balancing
 - workload modules attach services onto the shared platform baseline
+
+---
+
+## Architecture Diagram
+
+![Validated dev architecture](docs/architecture-dev.svg)
 
 ---
 
@@ -150,6 +173,15 @@ For the detailed walkthroughs, see:
 
 The current `dev` bootstrap implementation owns its backend resources directly in `bootstrap/dev` so the environment can be created, validated, destroyed, and recreated cleanly during short-lived AWS validation cycles.
 The shared `modules/remote_backend` path remains available for more persistent environments where backend deletion protection is desirable by default.
+
+---
+
+## Current Scope / Limitations
+
+- `dev` is the fully implemented and validated environment
+- `stage` and `prod` remain extension paths only
+- destroy is manual by design
+- the ALB is internal, so workflow smoke checks use AWS-native health signals instead of external HTTP checks from GitHub-hosted runners
 
 ---
 
