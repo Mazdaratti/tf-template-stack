@@ -15,26 +15,11 @@ data "aws_iam_policy_document" "github_actions_state_permissions" {
       "${aws_s3_bucket.terraform_state.arn}/*"
     ]
   }
-
-  statement {
-    sid    = "TerraformLockTableAccess"
-    effect = "Allow"
-    actions = [
-      "dynamodb:DescribeTable",
-      "dynamodb:GetItem",
-      "dynamodb:PutItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:UpdateItem",
-    ]
-    resources = [
-      aws_dynamodb_table.terraform_lock.arn
-    ]
-  }
 }
 
 resource "aws_iam_policy" "github_actions_state_policy" {
   name        = "gh-oidc-${var.project_name}-${var.environment}-state"
-  description = "State backend access for GitHub Actions runs (S3 + DynamoDB)."
+  description = "State backend access for GitHub Actions runs (S3 lockfile backend)."
   policy      = data.aws_iam_policy_document.github_actions_state_permissions.json
 
   tags = merge(var.common_tags, {

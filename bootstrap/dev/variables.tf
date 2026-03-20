@@ -27,12 +27,6 @@ variable "state_bucket_name" {
   default     = null
 }
 
-variable "lock_table_name" {
-  description = "Optional override for the Terraform lock DynamoDB table name."
-  type        = string
-  default     = null
-}
-
 variable "github_org" {
   description = "GitHub organization/user name that owns the repository."
   type        = string

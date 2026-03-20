@@ -3,14 +3,14 @@
 This folder provisions the **foundation infrastructure** for the `dev` environment:
 
 - Terraform remote state storage
-- Terraform state locking
+- Terraform state locking configuration
 - GitHub OIDC identity used for later deployments
 
 It provisions foundational infrastructure required before environment deployments can use remote state and GitHub OIDC authentication.
 
 - **Remote Terraform state backend**
   - S3 bucket for state
-  - DynamoDB table for state locking
+  - S3 lockfile-based state locking
 - **GitHub Actions OIDC authentication**
   - OIDC provider for GitHub
   - IAM role that GitHub Actions deployment workflows can assume using the configured repo-scoped branch and environment subject patterns
@@ -22,7 +22,7 @@ It also **generates `envs/dev/backend.tf` automatically** after apply, so you do
 - the Terraform backend resources are defined directly in this root
 - the state bucket uses `force_destroy = true`
 - the state bucket does not enable S3 versioning
-- the lock table does not enable DynamoDB point-in-time recovery
+- backend locking now uses the S3 backend lockfile model (`use_lockfile = true`)
 
 This design allows the `dev` bootstrap to be safely applied, destroyed, and recreated during infrastructure validation and experimentation.
 
@@ -58,7 +58,7 @@ This stack creates an IAM role for GitHub Actions:
   - environment-based subject matching for GitHub Environment `dev`
 - ✅ By default, permissions are separated into:
   - Terraform state bucket access (S3)
-  - Terraform lock table access (DynamoDB)
+  - Terraform state locking through the S3 backend lockfile model
   - deploy permissions for the currently implemented `envs/dev` infrastructure
 - ✅ Optional repo-aligned permissions boundary can be attached to the role as a guardrail
 
@@ -163,10 +163,6 @@ Example validation screenshots for the `dev` bootstrap flow:
 
 ![Bootstrap dev S3 state bucket](../../docs/screenshots/bootstrap-dev/bootstrap-dev-s3-state-bucket.png)
 
-### DynamoDB lock table
-
-![Bootstrap dev DynamoDB lock table](../../docs/screenshots/bootstrap-dev/bootstrap-dev-dynamodb-lock-table.png)
-
 ### GitHub Actions OIDC role
 
 ![Bootstrap dev GitHub Actions role](../../docs/screenshots/bootstrap-dev/bootstrap-dev-github-actions-role.png)
@@ -189,7 +185,7 @@ Example validation screenshots for the `dev` bootstrap flow:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.36.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.37.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | 2.7.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
 
@@ -201,7 +197,6 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_dynamodb_table.terraform_lock](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_iam_openid_connect_provider.github](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
 | [aws_iam_policy.github_actions_boundary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.github_actions_deploy_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
@@ -231,7 +226,6 @@ No modules.
 | <a name="input_github_branch"></a> [github\_branch](#input\_github\_branch) | GitHub branch name allowed to assume the GitHub Actions deploy role. | `string` | `"main"` | no |
 | <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization/user name that owns the repository. | `string` | n/a | yes |
 | <a name="input_github_repo"></a> [github\_repo](#input\_github\_repo) | GitHub repository name. | `string` | n/a | yes |
-| <a name="input_lock_table_name"></a> [lock\_table\_name](#input\_lock\_table\_name) | Optional override for the Terraform lock DynamoDB table name. | `string` | `null` | no |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_state_bucket_name"></a> [state\_bucket\_name](#input\_state\_bucket\_name) | Optional override for the Terraform state S3 bucket name. | `string` | `null` | no |
 
@@ -245,6 +239,4 @@ No modules.
 | <a name="output_tf_backend_key"></a> [tf\_backend\_key](#output\_tf\_backend\_key) | Canonical backend state key used for the target environment. |
 | <a name="output_tf_state_bucket_arn"></a> [tf\_state\_bucket\_arn](#output\_tf\_state\_bucket\_arn) | ARN of the S3 bucket used for Terraform state. |
 | <a name="output_tf_state_bucket_name"></a> [tf\_state\_bucket\_name](#output\_tf\_state\_bucket\_name) | Name of the S3 bucket used for Terraform state. |
-| <a name="output_tf_state_lock_table_arn"></a> [tf\_state\_lock\_table\_arn](#output\_tf\_state\_lock\_table\_arn) | ARN of the DynamoDB table used for Terraform state locking. |
-| <a name="output_tf_state_lock_table_name"></a> [tf\_state\_lock\_table\_name](#output\_tf\_state\_lock\_table\_name) | Name of the DynamoDB table used for Terraform state locking. |
 <!-- END_TF_DOCS -->
