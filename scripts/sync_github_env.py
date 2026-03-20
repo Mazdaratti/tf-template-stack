@@ -24,7 +24,6 @@ REQUIRED_OUTPUTS = {
     "AWS_ROLE_TO_ASSUME": "github_actions_role_arn",
     "AWS_REGION": "aws_region",
     "TF_BACKEND_BUCKET": "tf_state_bucket_name",
-    "TF_BACKEND_DYNAMODB_TABLE": "tf_state_lock_table_name",
     "TF_BACKEND_KEY": "tf_backend_key",
 }
 
