@@ -1,5 +1,8 @@
 # TF-Template-Stack
 
+[![Terraform Validation](https://github.com/Mazdaratti/tf-template-stack/actions/workflows/terraform-validation.yml/badge.svg)](https://github.com/Mazdaratti/tf-template-stack/actions/workflows/terraform-validation.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 A production-shaped Terraform template for building private AWS application platforms using reusable modules, thin environment composition, shared platform services, and ECS-based workload deployment.
 
 This repository demonstrates a module-first Terraform architecture where networking, private connectivity, encryption, storage, logging, DNS, ingress, and ECS workloads are separated into reusable building blocks and composed through lightweight environment root modules.
