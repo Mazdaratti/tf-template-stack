@@ -85,14 +85,14 @@ See:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.30.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -110,13 +110,13 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming/tagging (e.g., dev, staging, prod). | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags applied to all resources. | `map(string)` | `{}` | no |
 | <a name="input_create_routes"></a> [create\_routes](#input\_create\_routes) | Whether to create default routes in private route tables pointing to the NAT Gateway(s). | `bool` | `true` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Whether to create NAT Gateway resources and routes. | `bool` | `true` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming/tagging (e.g., dev, staging, prod). | `string` | n/a | yes |
 | <a name="input_mode"></a> [mode](#input\_mode) | NAT mode: per\_az (recommended) or single (cheaper dev). | `string` | `"per_az"` | no |
 | <a name="input_private_route_table_ids_by_az"></a> [private\_route\_table\_ids\_by\_az](#input\_private\_route\_table\_ids\_by\_az) | Map of AZ name => private route table ID (from modules/network). Required when enabled=true. | `map(string)` | `{}` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_public_subnet_ids_by_az"></a> [public\_subnet\_ids\_by\_az](#input\_public\_subnet\_ids\_by\_az) | Map of AZ name => public subnet ID (from modules/network). Required when enabled=true. | `map(string)` | `{}` | no |
 | <a name="input_reuse_eip_allocation_ids"></a> [reuse\_eip\_allocation\_ids](#input\_reuse\_eip\_allocation\_ids) | Optional list of existing EIP allocation IDs to reuse. If provided, the module will not create new EIPs. | `list(string)` | `null` | no |
 

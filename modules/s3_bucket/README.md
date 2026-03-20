@@ -219,14 +219,14 @@ All examples are designed to be:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.32.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -250,16 +250,16 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | The S3 bucket name. Must be globally unique. | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming/tagging (e.g., dev, staging, prod). | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_access_logging"></a> [access\_logging](#input\_access\_logging) | Server access logging configuration (optional).<br/><br/>If enabled = true, you must provide target\_bucket.<br/>target\_prefix is optional and helps separate logs by application/team. | <pre>object({<br/>    enabled       = bool<br/>    target_bucket = optional(string)<br/>    target_prefix = optional(string)<br/>  })</pre> | <pre>{<br/>  "enabled": false,<br/>  "target_bucket": null,<br/>  "target_prefix": null<br/>}</pre> | no |
 | <a name="input_attach_deny_insecure_transport_policy"></a> [attach\_deny\_insecure\_transport\_policy](#input\_attach\_deny\_insecure\_transport\_policy) | If true, attach a baseline bucket policy that denies any request over insecure transport (non-TLS). | `bool` | `true` | no |
-| <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | The S3 bucket name. Must be globally unique. | `string` | n/a | yes |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | A map of common tags to apply to all resources. | `map(string)` | `{}` | no |
 | <a name="input_encryption"></a> [encryption](#input\_encryption) | Default encryption configuration for the bucket.<br/><br/>type:<br/>  - "S3"  => SSE-S3 (AES256)<br/>  - "KMS" => SSE-KMS (AWS-managed key by default, or a customer-managed key if kms\_key\_arn is provided)<br/><br/>kms\_key\_arn:<br/>  - Optional. Only used when type == "KMS".<br/>  - Pass a key ARN from the kms\_keys module to use a customer-managed key. | <pre>object({<br/>    type        = string<br/>    kms_key_arn = optional(string)<br/>  })</pre> | <pre>{<br/>  "kms_key_arn": null,<br/>  "type": "S3"<br/>}</pre> | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for naming/tagging (e.g., dev, staging, prod). | `string` | n/a | yes |
 | <a name="input_force_destroy"></a> [force\_destroy](#input\_force\_destroy) | If true, Terraform can delete the bucket even if it contains objects. Keep false for production by default. | `bool` | `false` | no |
 | <a name="input_lifecycle_rules"></a> [lifecycle\_rules](#input\_lifecycle\_rules) | Optional lifecycle rules for the bucket.<br/><br/>Supported (minimal, production-grade):<br/>- expiration\_days (current objects)<br/>- noncurrent\_version\_expiration\_days (older versions)<br/>- abort\_incomplete\_multipart\_upload\_days (cleanup)<br/><br/>Scope (optional):<br/>- prefix<br/>- tags<br/>If neither prefix nor tags are set, the rule applies to the whole bucket. | <pre>list(object({<br/>    id      = string<br/>    enabled = bool<br/><br/>    prefix = optional(string)<br/>    tags   = optional(map(string))<br/><br/>    expiration_days                        = optional(number)<br/>    noncurrent_version_expiration_days     = optional(number)<br/>    abort_incomplete_multipart_upload_days = optional(number)<br/>  }))</pre> | `[]` | no |
 | <a name="input_policy_json"></a> [policy\_json](#input\_policy\_json) | Optional bucket policy JSON to attach (combined with baseline TLS-only policy unless disabled). | `string` | `null` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming/tagging. | `string` | n/a | yes |
 | <a name="input_versioning_enabled"></a> [versioning\_enabled](#input\_versioning\_enabled) | Enable S3 versioning. | `bool` | `true` | no |
 
 ## Outputs

@@ -218,14 +218,14 @@ All examples are designed to be:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.31.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -245,15 +245,15 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (e.g. dev, stage, prod). | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming and tagging. | `string` | n/a | yes |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs (typically private subnets) for interface endpoints. | `list(string)` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where interface endpoints will be created. | `string` | n/a | yes |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags applied to all resources. | `map(string)` | `{}` | no |
 | <a name="input_create_security_group"></a> [create\_security\_group](#input\_create\_security\_group) | Whether to create a minimal security group for the interface endpoints. | `bool` | `false` | no |
 | <a name="input_endpoint_policy_json"></a> [endpoint\_policy\_json](#input\_endpoint\_policy\_json) | Optional map of service => policy JSON to attach to interface endpoints.<br/><br/>Policies are usually defined in envs/<env>/endpoint\_policies.tf<br/>and passed into this module.<br/><br/>If a service key is omitted, AWS default endpoint policy is used. | `map(string)` | `{}` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (e.g. dev, stage, prod). | `string` | n/a | yes |
 | <a name="input_interface_endpoints"></a> [interface\_endpoints](#input\_interface\_endpoints) | Map of interface endpoints to create.<br/><br/>Key   = service identifier (e.g. ssm, ec2messages, logs)<br/>Value = object with enable flag and optional private DNS control.<br/><br/>Example:<br/>{<br/>  ssm = {<br/>    enabled             = true<br/>    private\_dns\_enabled = true<br/>  }<br/>} | <pre>map(object({<br/>    enabled             = bool<br/>    private_dns_enabled = optional(bool, true)<br/>  }))</pre> | `{}` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for naming and tagging. | `string` | n/a | yes |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | Existing security group IDs to attach to interface endpoints. Preferred in real-world setups. | `list(string)` | `[]` | no |
-| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs (typically private subnets) for interface endpoints. | `list(string)` | n/a | yes |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where interface endpoints will be created. | `string` | n/a | yes |
 
 ## Outputs
 

@@ -153,7 +153,7 @@ The example demonstrates:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
 ## Providers
@@ -182,14 +182,14 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags to merge with enforced tags. | `map(string)` | `{}` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name used for tagging (e.g., dev, staging, prod). | `string` | n/a | yes |
 | <a name="input_log_group_arn"></a> [log\_group\_arn](#input\_log\_group\_arn) | ARN of an existing CloudWatch Log Group to receive VPC Flow Logs (owned outside this module). | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for tagging. | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC to enable Flow Logs for. | `string` | n/a | yes |
+| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Additional tags to merge with enforced tags. | `map(string)` | `{}` | no |
 | <a name="input_max_aggregation_interval"></a> [max\_aggregation\_interval](#input\_max\_aggregation\_interval) | Maximum aggregation interval in seconds. Valid values: 60 or 600. If null, AWS default is used. | `number` | `600` | no |
 | <a name="input_permissions_boundary_arn"></a> [permissions\_boundary\_arn](#input\_permissions\_boundary\_arn) | Optional IAM permissions boundary ARN to attach to the Flow Logs IAM role. | `string` | `null` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name used for tagging. | `string` | n/a | yes |
 | <a name="input_traffic_type"></a> [traffic\_type](#input\_traffic\_type) | Traffic type to log. Valid values: ALL, ACCEPT, REJECT. | `string` | `"ALL"` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC to enable Flow Logs for. | `string` | n/a | yes |
 
 ## Outputs
 
