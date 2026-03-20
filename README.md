@@ -92,7 +92,21 @@ This layered composition keeps responsibilities separated:
 
 ## Architecture Diagram
 
-![Validated dev architecture](docs/architecture-dev.svg)
+### Control Plane / Delivery Flow
+
+![Control plane and deployment flow](docs/architecture-control-plane.svg)
+
+### Runtime Topology (`envs/dev`)
+
+![Runtime AWS topology](docs/architecture-runtime-topology.svg)
+
+### Runtime Behavior / Validation Flows
+
+![Runtime AWS behavior and validation flows](docs/architecture-runtime-behavior.svg)
+
+### Logging / Telemetry Flows
+
+![Logging and telemetry flows](docs/architecture-logging-dev.svg)
 
 ---
 
@@ -172,6 +186,7 @@ For the detailed walkthroughs, see:
 - `envs/dev/README.md` for environment deployment flow, GitHub Environment sync, and operator guidance
 
 The current `dev` bootstrap implementation owns its backend resources directly in `bootstrap/dev` so the environment can be created, validated, destroyed, and recreated cleanly during short-lived AWS validation cycles.
+
 The shared `modules/remote_backend` path remains available for more persistent environments where backend deletion protection is desirable by default.
 
 ---
