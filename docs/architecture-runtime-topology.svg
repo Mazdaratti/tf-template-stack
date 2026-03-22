@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="980" viewBox="0 0 1280 980" role="img" aria-labelledby="title desc">
   <title id="title">tf-template-stack runtime topology for envs/dev</title>
-  <desc id="desc">Topology view of the validated dev environment showing placement of networking, platform services, and workload components.</desc>
+  <desc id="desc">Topology view of the validated dev environment showing network placement, private workload placement, and regional shared services.</desc>
   <defs>
     <style>
       .bg { fill: #f6f7f4; }
@@ -16,6 +16,7 @@
       .small { font: 500 14px 'Segoe UI', sans-serif; fill: #374151; }
       .tiny { font: 500 13px 'Segoe UI', sans-serif; fill: #4b5563; }
       .line { stroke: #4b5563; stroke-width: 2.5; fill: none; }
+      .dash { stroke: #6b7280; stroke-width: 2.2; stroke-dasharray: 8 7; fill: none; }
     </style>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
@@ -29,59 +30,63 @@
   <rect class="panel" x="60" y="130" width="1160" height="790"/>
   <text class="subtitle" x="90" y="168">AWS account / eu-central-1</text>
 
-  <rect class="group" x="90" y="210" width="760" height="650"/>
+  <rect class="group" x="90" y="210" width="720" height="650"/>
   <text class="label" x="115" y="246">VPC</text>
 
-  <rect class="group" x="120" y="290" width="300" height="190"/>
-  <text class="label" x="145" y="325">Public subnets</text>
-  <rect class="amber" x="145" y="350" width="250" height="50"/>
-  <text class="label" x="172" y="381">Internal ALB</text>
-  <rect class="amber" x="145" y="415" width="250" height="50"/>
-  <text class="label" x="172" y="446">NAT Gateway</text>
+  <rect class="amber" x="120" y="285" width="250" height="68"/>
+  <text class="label" x="150" y="322">Internet Gateway</text>
+  <text class="tiny" x="150" y="343">attached at the VPC edge</text>
 
-  <rect class="group" x="455" y="290" width="365" height="260"/>
-  <text class="label" x="480" y="325">Private subnets</text>
-  <rect class="green" x="480" y="350" width="315" height="58"/>
-  <text class="label" x="515" y="383">ECS cluster + ECS service</text>
-  <rect class="blue" x="480" y="425" width="315" height="50"/>
-  <text class="label" x="515" y="456">CloudWatch Logs interface endpoint</text>
-  <rect class="box" x="480" y="490" width="145" height="50"/>
-  <text class="label" x="510" y="521">S3 endpoint</text>
-  <rect class="box" x="650" y="490" width="145" height="50"/>
-  <text class="label" x="665" y="521">DynamoDB endpoint</text>
+  <rect class="group" x="120" y="390" width="250" height="170"/>
+  <text class="label" x="145" y="425">Public subnets</text>
+  <rect class="amber" x="145" y="455" width="200" height="60"/>
+  <text class="label" x="182" y="491">NAT Gateway</text>
 
-  <rect class="box" x="120" y="520" width="300" height="65"/>
-  <text class="label" x="145" y="555">Internet Gateway</text>
-  <text class="tiny" x="145" y="576">public internet boundary</text>
+  <rect class="group" x="410" y="285" width="370" height="410"/>
+  <text class="label" x="435" y="320">Private subnets</text>
 
-  <rect class="green" x="120" y="635" width="300" height="120"/>
-  <text class="label" x="145" y="670">Route53 private hosted zone</text>
-  <text class="tiny" x="145" y="692">internal DNS namespace</text>
-  <text class="tiny" x="145" y="713">for private environment resources</text>
+  <rect class="amber" x="435" y="350" width="320" height="60"/>
+  <text class="label" x="525" y="387">Internal ALB</text>
 
-  <rect class="group" x="890" y="210" width="300" height="650"/>
-  <text class="label" x="915" y="246">Shared platform services</text>
+  <rect class="green" x="435" y="430" width="320" height="68"/>
+  <text class="label" x="490" y="468">ECS cluster + ECS service</text>
+  <text class="tiny" x="490" y="489">service tasks run in private subnets</text>
 
-  <rect class="blue" x="915" y="290" width="250" height="54"/>
-  <text class="label" x="960" y="322">KMS keys</text>
+  <rect class="blue" x="435" y="520" width="320" height="58"/>
+  <text class="label" x="480" y="555">Logs interface endpoint</text>
 
-  <rect class="blue" x="915" y="365" width="250" height="54"/>
-  <text class="label" x="948" y="397">CloudWatch log groups</text>
+  <rect class="box" x="435" y="600" width="150" height="60"/>
+  <text class="label" x="470" y="637">S3 endpoint</text>
 
-  <rect class="blue" x="915" y="440" width="250" height="54"/>
-  <text class="label" x="955" y="472">VPC Flow Logs</text>
+  <rect class="box" x="605" y="600" width="150" height="60"/>
+  <text class="label" x="618" y="637">DynamoDB endpoint</text>
 
-  <rect class="blue" x="915" y="535" width="250" height="54"/>
-  <text class="label" x="960" y="567">S3 logs bucket</text>
+  <rect class="group" x="850" y="210" width="340" height="650"/>
+  <text class="label" x="875" y="246">Regional shared services</text>
 
-  <rect class="blue" x="915" y="610" width="250" height="54"/>
-  <text class="label" x="967" y="642">S3 app bucket</text>
+  <rect class="green" x="875" y="285" width="290" height="90"/>
+  <text class="label" x="930" y="322">Route53 private hosted zone</text>
+  <text class="tiny" x="920" y="345">associated with the VPC</text>
 
-  <path class="line" marker-end="url(#arrow)" d="M395 375 L480 375"/>
-  <path class="line" marker-end="url(#arrow)" d="M395 440 L480 379"/>
-  <path class="line" marker-end="url(#arrow)" d="M420 552 L480 515"/>
-  <path class="line" marker-end="url(#arrow)" d="M820 380 L915 392"/>
-  <path class="line" marker-end="url(#arrow)" d="M1040 494 L1040 535"/>
+  <rect class="blue" x="875" y="400" width="290" height="54"/>
+  <text class="label" x="968" y="432">KMS keys</text>
 
-  <text class="tiny" x="90" y="895">Topology focus: what exists, where it is placed, and which components belong to the network, workload, and shared-services layers.</text>
+  <rect class="blue" x="875" y="475" width="290" height="54"/>
+  <text class="label" x="925" y="507">CloudWatch log groups</text>
+
+  <rect class="blue" x="875" y="550" width="290" height="54"/>
+  <text class="label" x="935" y="582">VPC Flow Logs</text>
+
+  <rect class="blue" x="875" y="645" width="290" height="54"/>
+  <text class="label" x="940" y="677">S3 logs bucket</text>
+
+  <rect class="blue" x="875" y="720" width="290" height="54"/>
+  <text class="label" x="947" y="752">S3 app bucket</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M370 319 L410 319"/>
+  <path class="dash" marker-end="url(#arrow)" d="M345 485 C380 485, 395 485, 435 485"/>
+  <path class="dash" marker-end="url(#arrow)" d="M755 555 C810 555, 820 505, 875 505"/>
+  <path class="dash" marker-end="url(#arrow)" d="M810 330 C835 330, 835 330, 875 330"/>
+
+  <text class="tiny" x="90" y="895">Topology focus: what exists, where it is placed, and the major structural associations between the VPC, private workload layer, and regional shared services.</text>
 </svg>
