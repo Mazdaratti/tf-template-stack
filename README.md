@@ -97,7 +97,7 @@ This layered composition keeps responsibilities separated:
 
 ### Control Plane / Delivery Flow
 
-![Control plane and deployment flow](docs/architecture-control-plane.svg)
+![Control plane and deployment flow](docs/architecture-control-plane-cleaned.drawio.svg)
 
 ### Runtime Topology (`envs/dev`)
 
